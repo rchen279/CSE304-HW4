@@ -3,6 +3,7 @@
 # 113200236
 
 from decaf_lexer import tokens
+from decaf_ast import *
 import sys
 # define grammar rules
 # starting rule -- program
@@ -11,6 +12,11 @@ def p_program(p):
     program : class_decl program
             | empty
     '''
+    if len(p) == 3:
+        p[2].class_records[p[1].class_name] = p[1]
+        p[0] = p[2]
+    else: # empty case -> create Class Table
+        p[0] = ClassTable()
 
 # empty production
 def p_empty(p):
@@ -22,12 +28,28 @@ def p_class_declaration(p):
     '''
     class_decl : CLASS ID optionalExtendsId L_CURLY_BRACE class_body_decl_plus R_CURLY_BRACE
     '''
+    class_decl_res = ClassRecord()
+    class_decl_res.class_name = p[2]
+
+    if (p[3] is None): # handle extends class
+        class_decl_res.super_class_name = ""
+    else:
+        class_decl_res.super_class_name = p[3]
+
+    p[0] = class_decl_res
 
 def p_optionalExtendsId(p):
     '''
     optionalExtendsId : EXTENDS ID
                 | empty
     '''
+    if len(p) == 3:
+        # print("in optional " + str(p[1]) + str(p[2]))
+        p[0] = str(p[2])
+    else:
+        # print("in optional " + str(p[1]))
+        p[0] = None
+
 
 def p_classBodyDeclPlus(p):
     '''
@@ -41,12 +63,22 @@ def p_class_body_decl(p):
                     | method_decl
                     | constructor_decl
     '''
+    if p[1][0] == "field_decl":
+        # print("foooooooooooo " + "this is a field decl")
+        modifier,var_decl = p[1][1],p[1][2]
+        print("gooooooo " + str(modifier) + str(var_decl))
+    elif p[1][0] == "method_decl":
+        print("foooooooooooo " + "this is a method decl")
+    else: # constructor_decl
+        pass
+    
 
 # fields
 def p_field_decl(p):
     '''
     field_decl : modifier var_decl
     '''
+    p[0] = ("field_decl",p[1],p[2])
 
 def p_modifier(p):
     '''
@@ -70,6 +102,7 @@ def p_var_decl(p):
     '''
     var_decl : type variables SEMI_COLON
     '''
+    print("the example var decl " + str(p[1]) + str(p[2]))
 
 def p_type(p):
     '''
@@ -78,6 +111,7 @@ def p_type(p):
         | BOOLEAN
         | ID
     '''
+    p[0] = TypeRecord(p[1])
 
 def p_variables(p):
     '''
@@ -89,6 +123,10 @@ def p_additional_variables(p):
     additional_variables : COMMA variable additional_variables
                         | empty
     '''
+    if len(p) == 4:
+        p[0] = [p[2]] + p[3]
+    else:
+        p[0] = []
 
 def p_variable(p):
     '''
@@ -101,12 +139,8 @@ def p_method_decl(p):
                 |   modifier VOID ID  L_PAREN zero_or_one_formals R_PAREN block
     
     '''
+    p[0] = ("method_decl",p[1],p[2],p[3],p[5])
 
-# def p_types(p):
-#     '''
-#     types : VOID
-#         | type
-#     '''
 def p_zero_or_one_formals(p):
     '''
     zero_or_one_formals : formals
@@ -191,6 +225,9 @@ def p_literal(p):
             | TRUE
             | FALSE
     '''
+    thetype,theval = p[1]
+    print("fooo" + str(thetype) + str(theval))
+
 
 def p_primary(p):
     '''

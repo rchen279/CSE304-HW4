@@ -111,7 +111,7 @@ def t_FLOAT_CONST(t):
 # Integer constants are one or more digits [0-9]
 def t_INT_CONST(t):
     r'\d+'
-    t.value = int(t.value)
+    t.value = ("INT_CONST",int(t.value))
     return t
 
 # define rule to track line no.
