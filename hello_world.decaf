@@ -1,9 +1,11 @@
 class A {
-  float z;
+  private static int z;
+  public float d;
+  static float b;
   int f(){
-    int x;
-    x = 5;
+    z = 0;
   }
+  
 }
 class B extends A{
   foo x;

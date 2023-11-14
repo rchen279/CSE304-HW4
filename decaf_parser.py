@@ -36,6 +36,18 @@ def p_class_declaration(p):
     else:
         class_decl_res.super_class_name = p[3]
 
+
+    print("inside p_class_declaration")
+    for el in p[5]:
+        if type(el) == FieldRecord:
+            # update colass name
+            el.containing_class = class_decl_res.class_name
+            class_decl_res.fields.append(el)
+        elif type(el) == MethodRecord:
+            class_decl_res.methods.append(el)
+        else:
+            class_decl_res.class_constructors.append(el)
+    
     p[0] = class_decl_res
 
 def p_optionalExtendsId(p):
@@ -56,6 +68,10 @@ def p_classBodyDeclPlus(p):
     class_body_decl_plus : class_body_decl
                         | class_body_decl class_body_decl_plus
     '''
+    if len(p) == 2:
+        p[0] = [p[1]]
+    else:
+        p[0] = [p[1]] + p[2]
 
 def p_class_body_decl(p):
     '''
@@ -63,14 +79,36 @@ def p_class_body_decl(p):
                     | method_decl
                     | constructor_decl
     '''
-    if p[1][0] == "field_decl":
-        # print("foooooooooooo " + "this is a field decl")
-        modifier,var_decl = p[1][1],p[1][2]
-        print("gooooooo " + str(modifier) + str(var_decl))
-    elif p[1][0] == "method_decl":
-        print("foooooooooooo " + "this is a method decl")
+    if p[1]:
+        if p[1][0] == "field_decl":
+            modifier,var_decl = p[1][1],p[1][2]
+            # print("inside p_class_body_decl " + str(modifier) + str(var_decl))
+            resFR = FieldRecord()
+
+            theType, theVar = var_decl
+            resFR.type = theType
+            resFR.field_name = theVar[0]
+
+            if (modifier[0] is None): # no public/private
+                # default is private
+                resFR.field_visibility = "private"
+            else:
+                resFR.field_visibility = modifier[0]
+            
+            # print("mofofofof" + str(modifier[1]))
+            if (modifier[1] is None): # no static
+                resFR.field_applicability = "instance"
+            else:
+                resFR.field_applicability = "static"
+            
+            p[0] = resFR
+            return
+        elif p[1][0] == "method_decl":
+            # print("inside p_class_body_decl " + "this is a method decl")
+            p[0] = MethodRecord()
     else: # constructor_decl
-        pass
+        # a;lsijf;lasdfj;l
+        p[0] = ConstructorRecord()
     
 
 # fields
@@ -78,12 +116,17 @@ def p_field_decl(p):
     '''
     field_decl : modifier var_decl
     '''
+    # print("inside p_field_decl" + str(p[1]) + str(p[2]))
+    print("inside p_field_decl" + str(p[1]) + str(p[2][0]))
     p[0] = ("field_decl",p[1],p[2])
 
 def p_modifier(p):
     '''
     modifier : public_private_zero_or_one static_zero_or_one
     '''
+    # print("inside p_modifier" + str(p[1]) + str(p[2]))
+    p[0] = (p[1],p[2])
+
 
 def p_public_private_zero_or_one(p):
     '''
@@ -91,18 +134,23 @@ def p_public_private_zero_or_one(p):
                                 | PRIVATE
                                 | empty
     '''
+    p[0] = p[1]
 
 def p_static_zero_or_one(p):
     '''
     static_zero_or_one : STATIC
                         | empty
     '''
+    p[0] = p[1]
 
 def p_var_decl(p):
     '''
     var_decl : type variables SEMI_COLON
     '''
+    # bunch of VariableRecords
     print("the example var decl " + str(p[1]) + str(p[2]))
+    p[0] = (p[1],p[2])
+
 
 def p_type(p):
     '''
@@ -117,6 +165,7 @@ def p_variables(p):
     '''
         variables : variable additional_variables
     '''
+    p[0] = [p[1]] + p[2]
 
 def p_additional_variables(p):
     '''
@@ -132,6 +181,7 @@ def p_variable(p):
     '''
     variable : ID
     '''
+    p[0] = p[1]
 
 def p_method_decl(p):
     '''
@@ -227,6 +277,9 @@ def p_literal(p):
     '''
     thetype,theval = p[1]
     print("fooo" + str(thetype) + str(theval))
+    match thetype:
+        case "INT_CONST":
+            p[0] = ConstantExpression(const_type = "Integer-constant",const_val = theval,line_range = [])
 
 
 def p_primary(p):
@@ -239,6 +292,8 @@ def p_primary(p):
             | lhs
             | method_invocation
     '''
+    # to change later a;lksdfj;askdjf;lakj;lsdkjf;
+    p[0] = p[1]
 
 def p_zero_or_one_arguments(p):
     '''
@@ -267,6 +322,9 @@ def p_field_access(p):
     field_access : primary DOT ID
                 | ID
     '''
+    # to change later a;lsdjf;alsdkjf;alskdjf
+    print("testingggggg" + str(p[1]))
+    p[0] = p[1]
 
 def p_method_invocation(p):
     '''
@@ -281,6 +339,8 @@ def p_expr(p):
         | expr bool_op expr
         | unary_op expr
     '''
+    # to change ;lkate ra;sdfjl;aksjdfl;aksldjf
+    p[0] = p[1]
 
 def p_assign(p):
     '''
@@ -290,6 +350,8 @@ def p_assign(p):
             | lhs DECR_OP
             | DECR_OP lhs
     '''
+    # to change a;lskdjfa;sldkjf;alskj;asldkjf
+    # p[0] = AssignExpression()
 
 def p_arith_op(p):
     '''

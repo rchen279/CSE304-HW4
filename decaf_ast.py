@@ -24,10 +24,17 @@ class ClassRecord:
     self.methods = []
     self.fields = []
   
+  def add_field_to_class_record(self,theField):
+    self.fields.append(theField)
+  
   def __str__(self):
     class_record_res_string = "Class Name: " + str(self.class_name) + "\n"
     class_record_res_string += "Superclass Name: " + str(self.super_class_name) + "\n"
     class_record_res_string += "Fields: " + "\n"
+
+    for f in self.fields:
+      class_record_res_string += str(f);
+
     class_record_res_string += "Constructors: " + "\n"
     class_record_res_string += "Methods: " + "\n"
     class_record_res_string += "--------------------------------------------------------------------------\n"
@@ -66,7 +73,7 @@ class FieldRecord:
     self.field_applicability = ""
     self.type = ""
   def __str__(self):
-    return "This is a field record"
+    return f"FIELD {self.field_id}, {self.field_name}, {self.containing_class}, {self.field_visibility}, {self.field_applicability}, {self.type}\n"
 
 # End Class Table: Contents
 
@@ -104,13 +111,19 @@ class ExpressionRecord:
     self.expr_type = expr_type
     self.line_range = line_range
   def __str__(self):
-    expr_record_res_string = ""
-    
-    return expr_record_res_string
+    return f'Expr( {self.get_content()} )'
+  def get_content(self):
+    return "" # empty result
+
 # begin ExpressionRecord subclasses
 
 class ConstantExpression(ExpressionRecord):
-  pass
+  def __init__(self,const_type,const_val,line_range):
+    super().__init__("CONSTANT",line_range)
+    self.const_type = const_type
+    self.const_val = const_val
+  def get_content(self):
+    return f"Constant({self.const_type}({self.const_val}))"
 
 class VarExpression(ExpressionRecord):
   pass
@@ -118,31 +131,38 @@ class VarExpression(ExpressionRecord):
 class UnaryExpression(ExpressionRecord):
   pass
 
+class BinaryExpression(ExpressionRecord):
+  pass
 
+class AssignExpression(ExpressionRecord):
+  def __init__(self,lhs_expr,rhs_expr,line_range):
+    super().__init__(self,"ASSIGN",line_range)
+    self.lhs_expr = lhs_expr
+    self.rhs_expr = rhs_expr
+  def get_content(self):
+    return f"Assign({self.lhs}, {self.rhs})"
 
-# 4. Binary-expression: has three pieces of information: the two operands (both expressions themselves) and
-# the binary operator. Binary operators are one of add, sub, mul, div, and, or, eq, neq, lt, leq, gt,
-# and geq.
-# 5. Assign-expression: has two pieces of information: the left- and right- hand sides of the assignment (both
-# expressions).
-# 6. Auto-expression: has three pieces of information to represent auto-increment and auto-decrement
-# expressions (e.g. "x++"). The three pieces of information are the operand (e.g. "x") which is an
-# expression, whether the operation is an auto-increment (e.g. x++) or auto-decrement (e.g x--), and
-# whether the operation is post (e.g. x++) or pre (e.g. ++x).
-# 7. Field-access-expression: has two pieces of information to represent p.x: the base (e.g. p), which is an
-# expression, and the field name (e.g. x), which is a string.
-# 8. Method-call-expression: has three pieces of information to represent p.f(x, y): the base (e.g. p),
-# which is an expression, the method name (e.g. x), which is a string, and a sequence of expressions
-# representing the arguments to the method call (e.g. x, y). Note that the argument sequence may be
-# empty.
-# 9. New-object-expression: has two pieces of information for creating a new object as in new a(i, x):
-# the base class name (e.g. a), and the sequence of expressions representing the arguments to the
-# constructor (e.g. i, x). Note that the argument sequence may be empty.
-# 10. This-expression: to denote this.
-# 11. Super-expression: to denote super.
-# 12. Class-reference-expression: with the referred class name as its information. This expression is used to
-# denote the value of literal class names.
+class AutoExpression(ExpressionRecord):
+  pass
 
-# begin ExpressionRecord subclasses
+class FieldAccessExpression(ExpressionRecord):
+  pass
+
+class MethodCallExpression(ExpressionRecord):
+  pass
+
+class NewObjectExpression(ExpressionRecord):
+  pass
+
+class ThisExpression(ExpressionRecord):
+  pass
+
+class SuperExpression(ExpressionRecord):
+  pass
+
+class ClassReferenceExpression(ExpressionRecord):
+  pass
+
+# End ExpressionRecord subclasses
 
 # End Variable Table: Contents
