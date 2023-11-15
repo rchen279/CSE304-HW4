@@ -105,7 +105,7 @@ def t_IDENTIFIER(t):
 # float constants have a decimal point and a sequence of 1+ digits on either side
 def t_FLOAT_CONST(t):
     r'\d+\.\d+'
-    t.value = float(t.value)
+    t.value = ("FLOAT_CONST", float(t.value))
     return t
 
 # Integer constants are one or more digits [0-9]

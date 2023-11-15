@@ -5,6 +5,7 @@
 from decaf_lexer import tokens
 from decaf_ast import *
 import sys
+
 # define grammar rules
 # starting rule -- program
 def p_program(p):
@@ -13,7 +14,8 @@ def p_program(p):
             | empty
     '''
     if len(p) == 3:
-        p[2].class_records[p[1].class_name] = p[1]
+        p[2].add_class(p[1])
+        print("now adding " + str(p[1].class_name))
         p[0] = p[2]
     else: # empty case -> create Class Table
         p[0] = ClassTable()
@@ -36,8 +38,6 @@ def p_class_declaration(p):
     else:
         class_decl_res.super_class_name = p[3]
 
-
-    print("inside p_class_declaration")
     for el in p[5]:
         if type(el) == FieldRecord:
             # update colass name
@@ -56,10 +56,8 @@ def p_optionalExtendsId(p):
                 | empty
     '''
     if len(p) == 3:
-        # print("in optional " + str(p[1]) + str(p[2]))
         p[0] = str(p[2])
     else:
-        # print("in optional " + str(p[1]))
         p[0] = None
 
 
@@ -79,36 +77,11 @@ def p_class_body_decl(p):
                     | method_decl
                     | constructor_decl
     '''
-    if p[1]:
-        if p[1][0] == "field_decl":
-            modifier,var_decl = p[1][1],p[1][2]
-            # print("inside p_class_body_decl " + str(modifier) + str(var_decl))
-            resFR = FieldRecord()
-
-            theType, theVar = var_decl
-            resFR.type = theType
-            resFR.field_name = theVar[0]
-
-            if (modifier[0] is None): # no public/private
-                # default is private
-                resFR.field_visibility = "private"
-            else:
-                resFR.field_visibility = modifier[0]
-            
-            # print("mofofofof" + str(modifier[1]))
-            if (modifier[1] is None): # no static
-                resFR.field_applicability = "instance"
-            else:
-                resFR.field_applicability = "static"
-            
-            p[0] = resFR
-            return
-        elif p[1][0] == "method_decl":
-            # print("inside p_class_body_decl " + "this is a method decl")
-            p[0] = MethodRecord()
-    else: # constructor_decl
-        # a;lsijf;lasdfj;l
-        p[0] = ConstructorRecord()
+    
+    if type(p[1]) == FieldRecord:
+        p[0] = p[1]
+    # case method record
+    # case constructor record
     
 
 # fields
@@ -116,9 +89,29 @@ def p_field_decl(p):
     '''
     field_decl : modifier var_decl
     '''
-    # print("inside p_field_decl" + str(p[1]) + str(p[2]))
-    print("inside p_field_decl" + str(p[1]) + str(p[2][0]))
-    p[0] = ("field_decl",p[1],p[2])
+
+    print(f"\ninside p_field_decl modifer is {str(p[1])} \n var_decl is {str(p[2])}")
+    resultFr = FieldRecord()
+
+    theType, theVar = p[2]
+    resultFr.type = theType
+    resultFr.field_name = theVar[0]
+
+    pubPriv = p[1][0]
+    if (pubPriv is None): # no public/private
+        # default is private
+        resultFr.field_visibility = "private"
+    else:
+        resultFr.field_visibility = pubPriv
+
+    hasStatic = p[1][1]
+    if (hasStatic is None): # no static
+        resultFr.field_applicability = "instance"
+    else:
+        resultFr.field_applicability = "static"
+
+    p[0] = resultFr # FieldRecord obj
+
 
 def p_modifier(p):
     '''
@@ -189,7 +182,7 @@ def p_method_decl(p):
                 |   modifier VOID ID  L_PAREN zero_or_one_formals R_PAREN block
     
     '''
-    p[0] = ("method_decl",p[1],p[2],p[3],p[5])
+    p[0] = ("method_decl",p[1],p[2],p[3],p[5],p[7])
 
 def p_zero_or_one_formals(p):
     '''
@@ -225,6 +218,7 @@ def p_block(p):
     '''
     block : L_CURLY_BRACE stmt_star R_CURLY_BRACE
     '''
+    # Block Statement Init
 
 def p_stmt_star(p):
     '''
@@ -245,6 +239,7 @@ def p_stmt(p):
         | var_decl
         | SEMI_COLON
     '''
+    # statement record sub class initialize here
 
 def p_zero_or_one_else_stmt(p):
     '''
@@ -257,12 +252,14 @@ def p_zero_or_one_stmt_expr(p):
     zero_or_one_stmt_expr : stmt_expr
                             | empty
     '''
+    p[0] = p[1]
 
 def p_zero_or_one_expr(p):
     '''
     zero_or_one_expr : expr
                     | empty
     '''
+    p[0] = p[1]
 
 # Expressions
 
@@ -275,12 +272,22 @@ def p_literal(p):
             | TRUE
             | FALSE
     '''
-    thetype,theval = p[1]
-    print("fooo" + str(thetype) + str(theval))
-    match thetype:
-        case "INT_CONST":
-            p[0] = ConstantExpression(const_type = "Integer-constant",const_val = theval,line_range = [])
-
+    if (type(p[1]) == tuple): # float / int const
+        constType,constVal = p[1]
+        if constType == "FLOAT_CONST":
+            p[0] = ConstantExpression("Float-constant",constVal,[])
+        else: # int const
+            p[0] = ConstantExpression("Integer-constant",constVal,[])
+    else:
+        match p[1]:
+            case "null":
+                p[0] = ConstantExpression("Null",None,[])
+            case "true":
+                p[0] = ConstantExpression("True",None,[])
+            case "false":
+                p[0] = ConstantExpression("False",None,[])
+            case _ :
+                p[0] = ConstantExpression("String-constant",p[1],[])
 
 def p_primary(p):
     '''
@@ -293,7 +300,13 @@ def p_primary(p):
             | method_invocation
     '''
     # to change later a;lksdfj;askdjf;lakj;lsdkjf;
-    p[0] = p[1]
+    # literal is of type ConstantExpression
+
+    # this -> init 
+    print("inside p_primary "+ str(p[1]))
+
+
+
 
 def p_zero_or_one_arguments(p):
     '''
@@ -322,14 +335,16 @@ def p_field_access(p):
     field_access : primary DOT ID
                 | ID
     '''
-    # to change later a;lsdjf;alsdkjf;alskdjf
-    print("testingggggg" + str(p[1]))
-    p[0] = p[1]
-
+    if len(p) == 4:
+        print("this is field access " + str(p[1]) + str(p[3]))
+        p[0] = FieldAccessExpression(p[1],p[3],[])
+    else:
+        print(" this is len " + f"{p[1]}")
 def p_method_invocation(p):
     '''
     method_invocation : field_access L_PAREN zero_or_one_arguments R_PAREN
     '''
+    # method call expression
 
 def p_expr(p):
     '''
@@ -339,7 +354,6 @@ def p_expr(p):
         | expr bool_op expr
         | unary_op expr
     '''
-    # to change ;lkate ra;sdfjl;aksjdfl;aksldjf
     p[0] = p[1]
 
 def p_assign(p):
@@ -351,7 +365,8 @@ def p_assign(p):
             | DECR_OP lhs
     '''
     # to change a;lskdjfa;sldkjf;alskj;asldkjf
-    # p[0] = AssignExpression()
+    # AssignExpression()
+    print("this is assign")
 
 def p_arith_op(p):
     '''

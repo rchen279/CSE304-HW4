@@ -1,9 +1,10 @@
 class A {
   private static int z;
-  public float d;
-  static float b;
+  public float f;
   int f(){
-    z = 0;
+    z = 5;
+    b = 5;
+    this.r = 5;
   }
   
 }
