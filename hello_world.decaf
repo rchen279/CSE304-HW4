@@ -1,15 +1,20 @@
 class A {
-  private static int z;
+  int x;
   public float f;
+  public static A () {
+    this.x = 0;
+  }
   int f(){
-    z = 5;
-    b = 5;
-    this.r = 5;
+    int x,y,z;
+    int a,b,c;
   }
   
 }
 class B extends A{
   foo x;
+  int f(){
+    int fooo;
+  }
 }
 class C{
   int x;

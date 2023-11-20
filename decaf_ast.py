@@ -47,14 +47,25 @@ class ClassRecord:
     return class_record_res_string
 
 class ConstructorRecord:
+  constructorIdVal = 1
   def __init__(self):
-    self.constructor_id = ""
+    self.constructor_id = ConstructorRecord.constructorIdVal
+    ConstructorRecord.constructorIdVal += 1
     self.constructor_visibility = ""
     self.constructor_parameters = []
-    self.variable_table = {}
+    self.variable_table = VariableTable()
     self.constructor_body = ""
   def __str__(self):
-    return "This is a constructor record"
+    constructor_res_string = f"CONSTRUCTOR: {self.constructor_id}, {self.constructor_visibility}\n"
+    constructor_res_string += "Constructor Parameters:\n"
+    for cp in self.constructor_parameters:
+      constructor_res_string += str(cp)
+    constructor_res_string += "Variable Table:\n"
+    if self.variable_table:
+      constructor_res_string += str(self.variable_table)
+    constructor_res_string += "Constructor Body:\n"
+    constructor_res_string += self.constructor_body
+    return constructor_res_string
 
 class MethodRecord:
   def __init__(self):
@@ -68,7 +79,7 @@ class MethodRecord:
     self.variable_table = {}
     self.method_body = ""
   def __str__(self):
-    return "This is a method record"
+    return "This is a method record\n"
   
 class FieldRecord:
   fieldIdVal = 1
@@ -87,17 +98,26 @@ class FieldRecord:
 
 # Start Variable Table: Contents
 
-class VariableTable:
-  pass
+class VariableTable: # holds variable records
+  def __init__(self):
+    self.varTable = []
+  def __str__(self):
+    vt_res_string = ""
+    for varRec in self.varTable:
+      vt_res_string += varRec
+    return vt_res_string
+
 
 class VariableRecord:
-  def __init__(self):
-    self.variable_name = ""
-    self.variable_id = ""
+  varIdVal = 1
+  def __init__(self, variable_name, theType):
+    self.variable_name = variable_name
+    self.variable_id = VariableRecord.varIdVal
+    VariableRecord.varIdVal += 1
     self.variable_kind = ""
-    self.type = ""
+    self.type = theType
   def __str__(self):
-    return "This is a variable record"
+    return f"VARIABLE {self.variable_id}, {self.variable_name}, {self.variable_kind}, {self.type}"
 
 class TypeRecord:
   def __init__(self,theType):
@@ -134,8 +154,20 @@ class StatementRecord:
 # 5. Expr-stmt: has one piece of information:
 # • the expression that comprises of this statement.
 # 6. Block-stmt: has one piece of information:
-
 # • a sequence of statements that comprise of this block.
+
+class BlockStmt:
+  def __init__(self):
+    self.block_stmts = []
+  def append_stmt_to_block(self,stmt):
+    self.block_stmts.append(stmt)
+  def __str__(self):
+    block_stmt_res_string = "Block(["
+    for s in self.block_stmts:
+      block_stmt_res_string += str(s) + ", "
+    block_stmt_res_string += "])"
+    return block_stmt_res_string
+
 # 7. Break-stmt: representing break.
 # 8. Continue-stmt: representing continue.
 # 9. Skip-stmt: representing an empty statement (as in an empty else part of an "if" statement).

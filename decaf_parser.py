@@ -77,11 +77,8 @@ def p_class_body_decl(p):
                     | method_decl
                     | constructor_decl
     '''
-    
-    if type(p[1]) == FieldRecord:
-        p[0] = p[1]
-    # case method record
-    # case constructor record
+    # p[1] has type FieldRecord or MethodRecord or ConstructorRecord
+    p[0] = p[1]
     
 
 # fields
@@ -93,7 +90,9 @@ def p_field_decl(p):
     print(f"\ninside p_field_decl modifer is {str(p[1])} \n var_decl is {str(p[2])}")
     resultFr = FieldRecord()
 
-    theType, theVar = p[2]
+    # to fix later -> p[2] now returns list of VariableRecords
+    theType, theVar = ("foo","x")
+
     resultFr.type = theType
     resultFr.field_name = theVar[0]
 
@@ -117,7 +116,6 @@ def p_modifier(p):
     '''
     modifier : public_private_zero_or_one static_zero_or_one
     '''
-    # print("inside p_modifier" + str(p[1]) + str(p[2]))
     p[0] = (p[1],p[2])
 
 
@@ -140,10 +138,11 @@ def p_var_decl(p):
     '''
     var_decl : type variables SEMI_COLON
     '''
-    # bunch of VariableRecords
+    # generate list of VariableRecords
     print("the example var decl " + str(p[1]) + str(p[2]))
-    p[0] = (p[1],p[2])
-
+    var_type = p[1]
+    # variable kind will be filled in by above
+    p[0] = [VariableRecord(v,var_type) for v in p[2]]
 
 def p_type(p):
     '''
@@ -182,7 +181,8 @@ def p_method_decl(p):
                 |   modifier VOID ID  L_PAREN zero_or_one_formals R_PAREN block
     
     '''
-    p[0] = ("method_decl",p[1],p[2],p[3],p[5],p[7])
+    p[0] = MethodRecord() # to be completed
+    # print("inside p_method_decl" + str(p[7]))
 
 def p_zero_or_one_formals(p):
     '''
@@ -194,6 +194,11 @@ def p_constructor_decl(p):
     '''
     constructor_decl : modifier ID L_PAREN zero_or_one_formals R_PAREN block
     '''
+    print("inside p_constructor_decl " +
+          str(p[1]) + str(p[2]) + str(p[4]) + str(p[6]))
+    print(p[6])
+    p[0] = ConstructorRecord()
+
 
 def p_formals(p):
     '''
@@ -218,13 +223,21 @@ def p_block(p):
     '''
     block : L_CURLY_BRACE stmt_star R_CURLY_BRACE
     '''
-    # Block Statement Init
+    res = BlockStmt()
+    print("inside p_block \n" + str(p[2]))
+    for s in p[2]:
+        res.append_stmt_to_block(s)
+    p[0] = res
 
 def p_stmt_star(p):
     '''
     stmt_star : stmt stmt_star
                 | empty
     '''
+    if len(p) == 3:
+        p[0] = [p[1]] + p[2]
+    else:
+        p[0] = []
 
 def p_stmt(p):
     '''
@@ -240,6 +253,8 @@ def p_stmt(p):
         | SEMI_COLON
     '''
     # statement record sub class initialize here
+    # print("inside p_stmt " + str(p[1]))
+    p[0] = p[1]
 
 def p_zero_or_one_else_stmt(p):
     '''
@@ -299,9 +314,7 @@ def p_primary(p):
             | lhs
             | method_invocation
     '''
-    # to change later a;lksdfj;askdjf;lakj;lsdkjf;
     # literal is of type ConstantExpression
-
     # this -> init 
     print("inside p_primary "+ str(p[1]))
 
@@ -364,7 +377,6 @@ def p_assign(p):
             | lhs DECR_OP
             | DECR_OP lhs
     '''
-    # to change a;lskdjfa;sldkjf;alskj;asldkjf
     # AssignExpression()
     print("this is assign")
 
