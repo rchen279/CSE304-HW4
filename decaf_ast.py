@@ -137,24 +137,39 @@ class StatementRecord:
 # start statement record sub classes
 
 # There are several kinds of statements, each with its own contents:
-# 1. If-stmt: has three pieces of information:
-# • the condition of the "if", which is an expression (described later),
-# • the "then" part, which is another statement, and
-# • the "else" part, which is another statement.
+
+
+class IfStmt:
+  def __init__(self,condition,thenStmt,elseStmt):
+    self.condition = condition
+    self.thenStmt = thenStmt
+    self.elseStmt = elseStmt
+  def __str__(self):
+    return "this is an if statement"
+
 # 2. While-stmt: has two pieces of information:
 # • the loop-condition of the "while", which is an expression (described later),
 # • the loop body, which is another statement.
+class WhileStmt:
+  pass
+
 # 3. For-stmt: has four pieces of information:
 # • the initializer expression, which is an expression (described later),
 # • the loop condition, which is another expression (described later),
 # • the update expression, which is another expression (described later),
 # • the loop body, which is another statement.
+class ForStmt:
+  pass
+
 # 4. Return-stmt: has one optional piece of information:
 # • the return value, specified by an expression (described later).
+class ReturnStmt:
+  pass
+
 # 5. Expr-stmt: has one piece of information:
 # • the expression that comprises of this statement.
-# 6. Block-stmt: has one piece of information:
-# • a sequence of statements that comprise of this block.
+class ExprStmt:
+  pass
 
 class BlockStmt:
   def __init__(self):
@@ -168,8 +183,15 @@ class BlockStmt:
     block_stmt_res_string += "])"
     return block_stmt_res_string
 
+class BreakStmt:
+  pass
 # 7. Break-stmt: representing break.
+class ContinueStmt:
+  pass
 # 8. Continue-stmt: representing continue.
+
+class SkipStmt:
+  pass
 # 9. Skip-stmt: representing an empty statement (as in an empty else part of an "if" statement).
 
 
@@ -193,24 +215,44 @@ class ConstantExpression(ExpressionRecord):
 
 
 class VarExpression(ExpressionRecord):
-  pass
+  def __init__(self,var_id): 
+    self.var_id = var_id
+  def __str__(self):
+    return f"Variable({self.var_id})"
 
 class UnaryExpression(ExpressionRecord):
-  pass
+  def __init__(self,operand,operator):
+    self.operand = operand
+    self.operator = operator
+  def __str__(self):
+    return f"Unary({self.operator}, {self.operand})"
+
 
 class BinaryExpression(ExpressionRecord):
-  pass
+  def __init__(self,bin_operator,operand1,operand2):
+    self.operand1 = operand1
+    self.operand2 = operand2
+    self.bin_operator = bin_operator
+  def __str__(self):
+    return f"Binary({self.bin_operator}, {self.operand1}, {self.operand2})"
+
+
 
 class AssignExpression(ExpressionRecord):
   def __init__(self,lhs_expr,rhs_expr,line_range):
-    super().__init__(self,line_range)
     self.lhs_expr = lhs_expr
     self.rhs_expr = rhs_expr
-  def get_content(self):
-    return f"Assign({self.lhs}, {self.rhs})"
+  def __str__(self):
+    return f"Assign({self.lhs_expr}, {self.rhs_expr})"
 
+# auto increment/ auto decrement
 class AutoExpression(ExpressionRecord):
-  pass
+  def __init__(self,operand, inc_or_dec, post_or_pre):
+    self.operand = operand
+    self.inc_or_dec = inc_or_dec
+    self.post_or_pre = post_or_pre
+  def __str__(self):
+    return f"Auto({self.operand}, {self.inc_or_dec}, {self.post_or_pre})"
 
 class FieldAccessExpression(ExpressionRecord):
   def __init__(self,baseExpr,fieldName,line_range):
@@ -218,19 +260,39 @@ class FieldAccessExpression(ExpressionRecord):
     self.baseExpr = baseExpr
     self.fieldName = fieldName
   def __str__(self):
-    return f"Field-access({self.baseExpr}, {self.fieldName}),"
+    return f"Field-access({self.baseExpr}, {self.fieldName})"
 
 class MethodCallExpression(ExpressionRecord):
-  pass
+  def __init__(self,base,method_name):
+    self.base = base
+    self.method_name = method_name
+    self.expressions = []
+  def append_expr_to_method_call_expr(self,expr):
+    self.expressions.append(expr)
+  def __str__(self):
+    expr_res = [', '.join(str(a) for a in self.expressions)]
+    return f"Method-call({self.base}, {self.method_name}, {expr_res}),"
 
 class NewObjectExpression(ExpressionRecord):
-  pass
+  def __init__(self,base_class_name):
+    self.base_class_name = base_class_name
+    self.arguments = []
+  def append_argument_to_new_obj_expr(self,arg):
+    self.arguments.append(arg)
+  def __str__(self):
+    return f"New-object({self.base_class_name}, [{', '.join(str(a) for a in self.arguments)}])"
 
 class ThisExpression(ExpressionRecord):
-  pass
+  def __init__(self,content,line_range):
+    self.content = content
+  def __str__(self):
+    return f"{self.content}"
 
 class SuperExpression(ExpressionRecord):
-  pass
+  def __init__(self,content,line_range):
+    self.content = content
+  def __str__(self):
+    return f"{self.content}"
 
 class ClassReferenceExpression(ExpressionRecord):
   pass
