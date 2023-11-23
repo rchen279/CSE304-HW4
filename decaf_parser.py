@@ -446,11 +446,8 @@ def p_expr(p):
     '''
 
     print(f"inside p_expr")
-    if len(p) == 2: # primary
-        print(f"case primary or assign {str(type(p[1]))}")
+    if len(p) == 2: # primary or assign
         p[0] = p[1]
-    elif isinstance(p[1], AssignExpression): # or isinstance(p[1], AutoExpression)
-        pass
     elif len(p) == 4:
         print("case arith/bool op")
         bin_op = ""
@@ -492,7 +489,7 @@ def p_expr(p):
             unary_operator = "neg"
         p[0] = UnaryExpression(p[2],unary_operator)
     
-    print(f"this is the resulting p0 + {p[0]}")
+    print(f"this is the resulting p0 -------- {p[0]}")
 def p_assign(p):
     '''
     assign : lhs ASSIGNMENT_OP expr

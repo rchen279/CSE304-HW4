@@ -1,12 +1,8 @@
 class A {
   int x;
   public int g() {
-    b = super.f(x = 2,x++,z);
-    b = g(fff);
-    b = g();
-    b = x.f(a,b,c);
-    b = super.f(a,b,c);
-    b = this.f(a,c,d);
+    b = (2 + 3) * (2 / 3)
+    
     
   }
 }
