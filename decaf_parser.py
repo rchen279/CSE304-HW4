@@ -30,6 +30,7 @@ def p_class_declaration(p):
     '''
     class_decl : CLASS ID optionalExtendsId L_CURLY_BRACE class_body_decl_plus R_CURLY_BRACE
     '''
+    
     class_decl_res = ClassRecord()
     class_decl_res.class_name = p[2]
 
@@ -38,15 +39,20 @@ def p_class_declaration(p):
     else:
         class_decl_res.super_class_name = p[3]
 
-    for el in p[5]:
-        if type(el) == FieldRecord:
-            # update colass name
-            el.containing_class = class_decl_res.class_name
-            class_decl_res.fields.append(el)
-        elif type(el) == MethodRecord:
-            class_decl_res.methods.append(el)
+    # p[5] is list of various records
+    for record in p[5]:
+        if type(record) == FieldRecord:
+            print("field record detected")
+            record.containing_class = p[2]
+            class_decl_res.fields.append(record)
+        elif type(record) == MethodRecord:
+            print("method record detected")
+            # fill in method containing class
+            record.containing_class = p[2]
+            class_decl_res.methods.append(record)
         else:
-            class_decl_res.class_constructors.append(el)
+            print("constructor record detected")
+            class_decl_res.class_constructors.append(record)
     
     p[0] = class_decl_res
 
@@ -67,9 +73,9 @@ def p_classBodyDeclPlus(p):
                         | class_body_decl class_body_decl_plus
     '''
     if len(p) == 2:
-        p[0] = [p[1]]
+        p[0] = p[1]
     else:
-        p[0] = [p[1]] + p[2]
+        p[0] = p[1] + p[2]
 
 def p_class_body_decl(p):
     '''
@@ -77,9 +83,12 @@ def p_class_body_decl(p):
                     | method_decl
                     | constructor_decl
     '''
-    # p[1] has type FieldRecord or MethodRecord or ConstructorRecord
-    p[0] = p[1]
-    
+    # p[1] has type [FieldRecord] or MethodRecord or ConstructorRecord
+    if type(p[1]) == list:
+        p[0] = p[1]
+    else:
+        p[0] = [p[1]]
+    # returns list of FieldRecord MethodRecord ConstructorRecord
 
 # fields
 def p_field_decl(p):
@@ -88,29 +97,29 @@ def p_field_decl(p):
     '''
 
     print(f"\ninside p_field_decl modifer is {str(p[1])} \n var_decl is {str(p[2])}")
-    resultFr = FieldRecord()
 
-    # to fix later -> p[2] now returns list of VariableRecords
-    theType, theVar = ("foo","x")
-
-    resultFr.type = theType
-    resultFr.field_name = theVar[0]
-
-    pubPriv = p[1][0]
-    if (pubPriv is None): # no public/private
+    field_vis,field_app = "",""
+    if (p[1][0] is None): # no public/private
         # default is private
-        resultFr.field_visibility = "private"
+        field_vis = "private"
     else:
-        resultFr.field_visibility = pubPriv
+        field_vis = p[1][0]
 
-    hasStatic = p[1][1]
-    if (hasStatic is None): # no static
-        resultFr.field_applicability = "instance"
+    if (p[1][1] is None): # no static
+        field_app = "instance"
     else:
-        resultFr.field_applicability = "static"
+        field_app = "static"
 
-    p[0] = resultFr # FieldRecord obj
-
+    result_field_record_list = []
+    for vr in p[2]:
+        field_rec = FieldRecord()
+        field_rec.field_name = vr.variable_name
+        # containing class will be filled above
+        field_rec.field_visibility = field_vis
+        field_rec.field_applicability = field_app
+        field_rec.type = vr.type
+        result_field_record_list.append(field_rec)
+    p[0] = result_field_record_list # FieldRecord obj
 
 def p_modifier(p):
     '''
@@ -181,14 +190,32 @@ def p_method_decl(p):
                 |   modifier VOID ID  L_PAREN zero_or_one_formals R_PAREN block
     
     '''
-    p[0] = MethodRecord() # to be completed
-    # print("inside p_method_decl" + str(p[7]))
+    res = MethodRecord() # to be completed
+
+    print("inside asdfsadf")
+    print(str(type(p[2])))
+
+    res.method_name = p[3]
+    # method_id handled in AST 
+    # containing_class is handled above
+    
+    # self.method_visibility = ""
+    # self.method_applicability = ""
+    # self.method_parameters = []
+    # self.return_type = None
+    # self.variable_table = VariableTable()
+    # self.method_body = None
+
+    p[0] = res
+
+
 
 def p_zero_or_one_formals(p):
     '''
     zero_or_one_formals : formals
                         | empty
     '''
+    p[0] = p[1]
 
 def p_constructor_decl(p):
     '''
@@ -196,40 +223,61 @@ def p_constructor_decl(p):
     '''
     print("inside p_constructor_decl ")
 
-
     mod, theId, z_o_o_formals, block = p[1],p[2],p[4],p[6]
-    res_c_r = ConstructorRecord()
+    res = ConstructorRecord()
     print("------------------------")
     if mod[0] is None:
         # private default
-        res_c_r.constructor_visibility = "private"
+        res.constructor_visibility = "private"
     else:
-        res_c_r.constructor_visibility = mod[0]
+        res.constructor_visibility = mod[0]
     
     # handle formal params
-    # create variable table
-    for b in block.block_stmts:
-        print(str(b) + "\n")
-    # handle block
+    if z_o_o_formals:
+        print("formlal paparma")
+        for f in z_o_o_formals:
+            res.insert_var_record_to_var_table(f)
+            res.constructor_parameters.append(f.variable_id)
+
+    # handle block -> var table
+    for s in block.block_stmts:
+        if type(s) == list: # var_decl -> list of VariableRecords
+            for v in s: # update var kind to local
+                v.variable_kind = "local"
+                res.insert_var_record_to_var_table(v)
+    # body will consist of all but var_decls
+    resBlockStmt = BlockStmt()
+    for s in block.block_stmts:
+        if type(s) != list:
+            resBlockStmt.append_stmt_to_block(s)
+    res.constructor_body = resBlockStmt
     
-    p[0] = res_c_r
+    p[0] = res
 
 def p_formals(p):
     '''
     formals : formal_param additional_formal_params
     '''
-
+    p[0] = [p[1]] + p[2]
 
 def p_additional_formal_params(p):
     '''
     additional_formal_params : COMMA formal_param additional_formal_params
                             | empty
     '''
+    if len(p) == 4:
+        p[0] = [p[2]] + p[3]
+    else:
+        p[0] = []
 
 def p_formal_param(p):
     '''
     formal_param : type variable
     '''
+    print(f"formal param detected {p[1]} {p[2]}")
+    p[0] = VariableRecord(p[2],p[1])
+    p[0].variable_kind = "formal"
+    print(p[0])
 
 # decaf statements
 
@@ -238,16 +286,11 @@ def p_block(p):
     block : L_CURLY_BRACE stmt_star R_CURLY_BRACE
     '''
     res = BlockStmt()
-    print("inside p_block \n")
+    print(f"inside p_block {p[2]}\n")
     for s in p[2]:
-        print(s)
-        if type(s) == list:
-            for s1 in s:
-                res.append_stmt_to_block(s1)
-        else:
-            res.append_stmt_to_block(s)
-
+        res.append_stmt_to_block(s)
     p[0] = res
+    print(p[0])
 
 def p_stmt_star(p):
     '''

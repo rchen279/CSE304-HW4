@@ -1,8 +1,11 @@
-class A {
-  int x;
-  public int g() {
-    break;
-    continue;
-    
-  }
+class A extends C{
+int x,y,z;
+private static int y;
+A (int c,float y) {
+this.x = 0;
+}
+private static float myFunc(int x,float zz){
+  x = y;
+  z = 5;
+}
 }

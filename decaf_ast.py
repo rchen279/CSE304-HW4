@@ -36,9 +36,9 @@ class ClassRecord:
     class_record_res_string += "Constructors: " + "\n"
 
     for c in self.class_constructors:
-      class_record_res_string += str(c);
+      class_record_res_string += str(c) + "\n";
 
-    class_record_res_string += "Methods: " + "\n"
+    class_record_res_string += "\nMethods: " + "\n"
 
     for m in self.methods:
       class_record_res_string += str(m);
@@ -54,33 +54,42 @@ class ConstructorRecord:
     self.constructor_visibility = ""
     self.constructor_parameters = []
     self.variable_table = VariableTable()
-    self.constructor_body = ""
+    self.constructor_body = None
+  def insert_var_record_to_var_table(self,varR):
+    self.variable_table.varTable.append(varR)
+  
   def __str__(self):
     constructor_res_string = f"CONSTRUCTOR: {self.constructor_id}, {self.constructor_visibility}\n"
-    constructor_res_string += "Constructor Parameters:\n"
+    constructor_res_string += "Constructor Parameters: "
     for cp in self.constructor_parameters:
-      constructor_res_string += str(cp)
+      constructor_res_string += str(cp) + " "
+    constructor_res_string += "\n"
     constructor_res_string += "Variable Table:\n"
     if self.variable_table:
       constructor_res_string += str(self.variable_table)
+    constructor_res_string += "\n"
     constructor_res_string += "Constructor Body:\n"
-    constructor_res_string += self.constructor_body
+
+    constructor_res_string += f"{self.constructor_body}"
     return constructor_res_string
 
 class MethodRecord:
+  method_id_val = 1
   def __init__(self):
     self.method_name = ""
-    self.method_id = ""
+    self.method_id = MethodRecord.method_id_val
+    MethodRecord.method_id_val += 1
     self.containing_class = ""
     self.method_visibility = ""
     self.method_applicability = ""
     self.method_parameters = []
-    self.return_type = ""
-    self.variable_table = {}
-    self.method_body = ""
+    self.return_type = None
+    self.variable_table = VariableTable()
+    self.method_body = None
   def __str__(self):
-    return "This is a method record\n"
-  
+    res = f"METHOD: {self.method_id}, {self.method_name}, {self.containing_class}, {self.method_visibility}, {self.method_applicability}, {self.return_type}"
+    res += "\n"
+    return res
 class FieldRecord:
   fieldIdVal = 1
   def __init__(self):
@@ -104,7 +113,7 @@ class VariableTable: # holds variable records
   def __str__(self):
     vt_res_string = ""
     for varRec in self.varTable:
-      vt_res_string += varRec
+      vt_res_string += str(varRec) + "\n"
     return vt_res_string
 
 
@@ -145,7 +154,7 @@ class IfStmt:
     self.thenStmt = thenStmt
     self.elseStmt = elseStmt
   def __str__(self):
-    return f"If-stmt( \n\tCondition: {self.condition},\n\tThen: {self.thenStmt}, \n\tElse: {self.elseStmt}\n)"
+    return f"If-stmt( Condition: {self.condition}, Then: {self.thenStmt}, Else: {self.elseStmt}\n)"
 
 
 class WhileStmt:
@@ -153,7 +162,7 @@ class WhileStmt:
     self.condition = condition
     self.body = body
   def __str__(self):
-    return f"While-stmt(\n\tCondition: {self.condition},\n\tBody: {self.body})"
+    return f"While-stmt( Condition: {self.condition}, Body: {self.body})"
 
 class ForStmt:
   def __init__(self,init,cond,update,body):
@@ -168,13 +177,13 @@ class ReturnStmt:
   def __init__(self,val=None):
     self.val = val
   def __str__(self):
-    return f"Return-stmt(\n\t{self.val}\n)"
+    return f"Return-stmt( {self.val} )"
 
 class ExprStmt:
   def __init__(self,expr):
     self.expr = expr
   def __str__(self):
-    return f"Expr-stmt(\n\t{self.expr}\n)"
+    return f"Expr-stmt( {self.expr} )"
 
 class BlockStmt:
   def __init__(self):
@@ -182,10 +191,10 @@ class BlockStmt:
   def append_stmt_to_block(self,stmt):
     self.block_stmts.append(stmt)
   def __str__(self):
-    block_stmt_res_string = "Block(["
+    block_stmt_res_string = "Block([\n"
     for s in self.block_stmts:
-      block_stmt_res_string += str(s) + ", "
-    block_stmt_res_string += "])"
+      block_stmt_res_string += str(s) + "\n,  "
+    block_stmt_res_string += "\n])"
     return block_stmt_res_string
 
 class BreakStmt:
