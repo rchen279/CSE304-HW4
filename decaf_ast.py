@@ -145,31 +145,36 @@ class IfStmt:
     self.thenStmt = thenStmt
     self.elseStmt = elseStmt
   def __str__(self):
-    return "this is an if statement"
+    return f"If-stmt( \n\tCondition: {self.condition},\n\tThen: {self.thenStmt}, \n\tElse: {self.elseStmt}\n)"
 
-# 2. While-stmt: has two pieces of information:
-# • the loop-condition of the "while", which is an expression (described later),
-# • the loop body, which is another statement.
+
 class WhileStmt:
-  pass
+  def __init__(self,condition,body):
+    self.condition = condition
+    self.body = body
+  def __str__(self):
+    return f"While-stmt(\n\tCondition: {self.condition},\n\tBody: {self.body})"
 
-# 3. For-stmt: has four pieces of information:
-# • the initializer expression, which is an expression (described later),
-# • the loop condition, which is another expression (described later),
-# • the update expression, which is another expression (described later),
-# • the loop body, which is another statement.
 class ForStmt:
-  pass
+  def __init__(self,init,cond,update,body):
+    self.init = init
+    self.cond = cond
+    self.update = update
+    self.body = body
+  def __str__(self):
+    return f"For-stmt(\n\tInit: {self.init},\n\tCondition: {self.cond},\n\tUpdate: {self.update},\n\tBody: {self.body} \n)"
 
-# 4. Return-stmt: has one optional piece of information:
-# • the return value, specified by an expression (described later).
 class ReturnStmt:
-  pass
+  def __init__(self,val=None):
+    self.val = val
+  def __str__(self):
+    return f"Return-stmt(\n\t{self.val}\n)"
 
-# 5. Expr-stmt: has one piece of information:
-# • the expression that comprises of this statement.
 class ExprStmt:
-  pass
+  def __init__(self,expr):
+    self.expr = expr
+  def __str__(self):
+    return f"Expr-stmt(\n\t{self.expr}\n)"
 
 class BlockStmt:
   def __init__(self):
@@ -184,10 +189,15 @@ class BlockStmt:
     return block_stmt_res_string
 
 class BreakStmt:
-  pass
-# 7. Break-stmt: representing break.
+  def __init__(self):
+    pass
+  def __str__(self):
+    return f"Break-stmt()"
 class ContinueStmt:
-  pass
+  def __init__(self):
+    pass
+  def __str__(self):
+    return f"Continue-stmt()"
 # 8. Continue-stmt: representing continue.
 
 class SkipStmt:
@@ -271,7 +281,7 @@ class MethodCallExpression(ExpressionRecord):
     self.expressions.append(expr)
   def __str__(self):
     expr_res = [', '.join(str(a) for a in self.expressions)]
-    return f"Method-call({self.base}, {self.method_name}, {expr_res}),"
+    return f"Method-call({self.base}, {self.method_name}, {expr_res})"
 
 class NewObjectExpression(ExpressionRecord):
   def __init__(self,base_class_name):

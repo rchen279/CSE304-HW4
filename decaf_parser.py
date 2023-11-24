@@ -273,22 +273,47 @@ def p_stmt(p):
         | SEMI_COLON
     '''
     # statement record sub class initialize here
-    p[0] = p[1]
-    # if
-    # while
-    # for
-    # return
-    # stmt_expr
-    # break
-    # continue
-    print("fooooooo p[1]" + str(p[1]))
-    if type(p[1]) == BlockStmt:
-        print("block statement detected in p_stmt")
-    if type(p[1]) == list:
-        print("var decl list type detected ")
-    if type(p[1]) == str and p[1] == ";":
-        print("semi colon stmt detected " + str(p[1]))
+   
+    print("inside p_stmt ")
+    print(p[1])
 
+    if p[1] == "if":
+        print(f"if detected {p[3]}\n {p[5]}\n {p[6]}")
+        p[0] = IfStmt(p[3],p[5],p[6])
+    elif p[1] == "while":
+        print(f"while detected {p[3]} {p[5]}")
+        p[0] = WhileStmt(p[3],p[5])
+    elif p[1] == "for":
+        print(f"for detected {p[3]} {p[5]} {p[7]} {p[9]}")
+        p[0] = ForStmt(p[3],p[5],p[7],p[9])
+        print(p[0])
+    elif p[1] == "return":
+        print(f"return detected {p[2]}")
+        p[0] = ReturnStmt(p[2])
+        print(p[0])
+    # detect stmt_expr case
+    elif type(p[1]) in [AssignExpression,AutoExpression,MethodCallExpression]:
+        print("stmt_expr ; detected")
+        p[0] = ExprStmt(p[1])
+        print(p[0])
+    elif p[1] == "break":
+        print("break detected")
+        p[0] = BreakStmt()
+        print(p[0])
+    elif p[1] == "continue":
+        print("continue detected")
+        p[0] = ContinueStmt()
+        print(p[0])
+    elif type(p[1]) == BlockStmt:
+        print("block statmenet detected")
+        p[0] = p[1]
+    elif type(p[1]) == list:
+        print("var decl detected")
+        p[0] = p[1] # to pass upward to handle
+        print(p[0])
+    else:
+        print("semi colon case? ")
+    
     
 
 def p_zero_or_one_else_stmt(p):
@@ -296,6 +321,10 @@ def p_zero_or_one_else_stmt(p):
     zero_or_one_else_stmt : ELSE stmt
                             | empty
     '''
+    if len(p) == 3: # to confirm works
+        p[0] = p[2]
+    else:
+        p[0] = p[1]
 
 def p_zero_or_one_stmt_expr(p):
     '''
@@ -488,8 +517,7 @@ def p_expr(p):
         else:
             unary_operator = "neg"
         p[0] = UnaryExpression(p[2],unary_operator)
-    
-    print(f"this is the resulting p0 -------- {p[0]}")
+
 def p_assign(p):
     '''
     assign : lhs ASSIGNMENT_OP expr
