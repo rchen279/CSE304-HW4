@@ -13,12 +13,13 @@ def p_program(p):
     program : class_decl program
             | empty
     '''
+
     if len(p) == 3:
         p[2].add_class(p[1])
-        print("now adding " + str(p[1].class_name))
         p[0] = p[2]
     else: # empty case -> create Class Table
         p[0] = ClassTable()
+    
 
 # empty production
 def p_empty(p):
@@ -44,7 +45,8 @@ def p_class_declaration(p):
         if type(record) == FieldRecord:
             print("field record detected")
             record.containing_class = p[2]
-            class_decl_res.fields.append(record)
+            # class_decl_res.fields.append(record)
+            class_decl_res.add_field_to_class_record(record)
         elif type(record) == MethodRecord:
             print("method record detected")
             # fill in method containing class
@@ -190,22 +192,44 @@ def p_method_decl(p):
                 |   modifier VOID ID  L_PAREN zero_or_one_formals R_PAREN block
     
     '''
-    res = MethodRecord() # to be completed
-
-    print("inside asdfsadf")
-    print(str(type(p[2])))
-
+    res = MethodRecord()
+    print("inside method_decl")
     res.method_name = p[3]
     # method_id handled in AST 
     # containing_class is handled above
-    
-    # self.method_visibility = ""
-    # self.method_applicability = ""
-    # self.method_parameters = []
-    # self.return_type = None
-    # self.variable_table = VariableTable()
-    # self.method_body = None
+    method_vis,method_app = "",""
+    if (p[1][0] is None): # no public/private
+        # default is private
+        method_vis = "private"
+    else:
+        method_vis = p[1][0]
 
+    if (p[1][1] is None): # no static
+        method_app = "instance"
+    else:
+        method_app = "static"
+
+    res.method_visibility = method_vis
+    res.method_applicability = method_app
+    res.return_type = p[2] if (type(p[2]) == TypeRecord) else None
+    # add local variables to variable table
+    for s in p[7].block_stmts:
+        if (type(s)) == list:
+            for v in s:
+                v.variable_kind = "local"
+                res.insert_var_record_to_var_table(v)
+    # add formal variables to variable table
+    # add var ids to method parameters
+    if p[5]:
+        for f in p[5]:
+            res.insert_var_record_to_var_table(f)
+            res.method_parameters.append(f.variable_id)
+    # body will consist of all but var_decls
+    resBlockStmt = BlockStmt()
+    for s in p[7].block_stmts:
+        if type(s) != list:
+            resBlockStmt.append_stmt_to_block(s)
+    res.method_body = resBlockStmt
     p[0] = res
 
 

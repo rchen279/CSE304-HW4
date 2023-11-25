@@ -1,11 +1,17 @@
-class A extends C{
-int x,y,z;
-private static int y;
-A (int c,float y) {
-this.x = 0;
+class A {
+  private static int x,y,z;
+  public A(){
+    float x;
+    x = y;
+  }
+
 }
-private static float myFunc(int x,float zz){
-  x = y;
-  z = 5;
-}
+
+class B{
+  float x,y;
+  private void lll(int x,float y){
+    int aa;
+    aaaaa = ff= ff;
+    return x = y;
+  }
 }

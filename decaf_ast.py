@@ -1,5 +1,8 @@
-# code for ast file
+# Ryan Chen 
+# ryachen
+# 113200236
 
+# code for ast file
 # Start Class Table: Contents
 
 class ClassTable: # a collection of class records
@@ -7,11 +10,23 @@ class ClassTable: # a collection of class records
     self.class_records = []
     self.pErrors = [] # track errors in program
   def add_class(self,class_record): # adds a ClassRecord to the class table id by classname
+    for rec in self.class_records:
+      if class_record.class_name == rec.class_name:
+        self.pErrors.append(f"Class Name {class_record.class_name} already exists")
+        return # error
     self.class_records.append(class_record)
   def __str__(self):
     res = "--------------------------------------------------------------------------\n"
     for class_record in self.class_records:
       res += str(class_record)
+      # check for errors in given class
+      for err in class_record.getClassRecordErrors():
+        self.pErrors.append(err)
+    
+    if len(self.pErrors)> 0:
+      res += "\nThe Following Errors Were Encountered\n"
+      for er in self.pErrors:
+        res+=er + "\n"
     return res
 
 class ClassRecord:
@@ -21,9 +36,19 @@ class ClassRecord:
     self.class_constructors = []
     self.methods = []
     self.fields = []
+
+    self.errors = []
   
   def add_field_to_class_record(self,theField):
+    # detect if two fields in class have same name
+    for field in self.fields:
+      if theField.field_name == field.field_name:
+        self.errors.append(f"Duplicate field {theField.field_name} in class {self.class_name}, not added")
+        return
     self.fields.append(theField)
+
+  def getClassRecordErrors(self):
+    return self.errors
   
   def __str__(self):
     class_record_res_string = "Class Name: " + str(self.class_name) + "\n"
@@ -38,7 +63,7 @@ class ClassRecord:
     for c in self.class_constructors:
       class_record_res_string += str(c) + "\n";
 
-    class_record_res_string += "\nMethods: " + "\n"
+    class_record_res_string += "Methods: " + "\n"
 
     for m in self.methods:
       class_record_res_string += str(m);
@@ -67,7 +92,6 @@ class ConstructorRecord:
     constructor_res_string += "Variable Table:\n"
     if self.variable_table:
       constructor_res_string += str(self.variable_table)
-    constructor_res_string += "\n"
     constructor_res_string += "Constructor Body:\n"
 
     constructor_res_string += f"{self.constructor_body}"
@@ -86,9 +110,21 @@ class MethodRecord:
     self.return_type = None
     self.variable_table = VariableTable()
     self.method_body = None
+  def insert_var_record_to_var_table(self,varR):
+    self.variable_table.varTable.append(varR)
   def __str__(self):
     res = f"METHOD: {self.method_id}, {self.method_name}, {self.containing_class}, {self.method_visibility}, {self.method_applicability}, {self.return_type}"
     res += "\n"
+    res += "Method parameters: "
+    for p in self.method_parameters:
+      res += str(p) + ", "
+    res += "\n"
+    res += "Variable Table:\n"
+    if self.variable_table:
+      res += str(self.variable_table) + "\n"
+    res += "Method Body:\n"
+    res += str(self.method_body)
+    res += '\n'
     return res
 class FieldRecord:
   fieldIdVal = 1
