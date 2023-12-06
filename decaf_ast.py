@@ -169,7 +169,7 @@ class TypeRecord:
     self.type = theType
   def __str__(self):
     type_res_string = ""
-    built_in_types_list = ["int", "float", "boolean","string"]
+    built_in_types_list = ["int", "float", "boolean","void","class-literal","error","null"]
     if self.type in built_in_types_list:
       type_res_string = str(self.type)
     else:
@@ -189,6 +189,8 @@ class IfStmt:
     self.condition = condition
     self.thenStmt = thenStmt
     self.elseStmt = elseStmt
+    # for type checking
+    self.isTypeCorrect = None
   def __str__(self):
     return f"If-stmt( Condition: {self.condition}, Then: {self.thenStmt}, Else: {self.elseStmt}\n)"
 
@@ -197,6 +199,8 @@ class WhileStmt:
   def __init__(self,condition,body):
     self.condition = condition
     self.body = body
+    # for type checking
+    self.isTypeCorrect = None
   def __str__(self):
     return f"While-stmt( Condition: {self.condition}, Body: {self.body})"
 
@@ -206,24 +210,32 @@ class ForStmt:
     self.cond = cond
     self.update = update
     self.body = body
+    # for type checking
+    self.isTypeCorrect = None
   def __str__(self):
     return f"For-stmt(\n\tInit: {self.init},\n\tCondition: {self.cond},\n\tUpdate: {self.update},\n\tBody: {self.body} \n)"
 
 class ReturnStmt:
   def __init__(self,val=None):
     self.val = val
+    # for type checking
+    self.isTypeCorrect = None
   def __str__(self):
     return f"Return-stmt( {self.val} )"
 
 class ExprStmt:
   def __init__(self,expr):
     self.expr = expr
+    # for type checking
+    self.isTypeCorrect = None
   def __str__(self):
     return f"Expr-stmt( {self.expr} )"
 
 class BlockStmt:
   def __init__(self):
     self.block_stmts = []
+    # for type checking
+    self.isTypeCorrect = None
   def append_stmt_to_block(self,stmt):
     self.block_stmts.append(stmt)
   def __str__(self):
@@ -265,6 +277,8 @@ class ConstantExpression(ExpressionRecord):
     super().__init__(line_range)
     self.constExprType = constExprType
     self.const_val = const_val
+    # for type checking
+    self.type = None
   def __str__(self):
     return f"Constant({self.constExprType}({self.const_val}))"
 
@@ -272,6 +286,8 @@ class ConstantExpression(ExpressionRecord):
 class VarExpression(ExpressionRecord):
   def __init__(self,var_id): 
     self.var_id = var_id
+    # for type checking
+    self.type = None
   def __str__(self):
     return f"Variable({self.var_id})"
 
@@ -279,6 +295,8 @@ class UnaryExpression(ExpressionRecord):
   def __init__(self,operand,operator):
     self.operand = operand
     self.operator = operator
+    # for type checking
+    self.type = None
   def __str__(self):
     return f"Unary({self.operator}, {self.operand})"
 
@@ -288,6 +306,8 @@ class BinaryExpression(ExpressionRecord):
     self.operand1 = operand1
     self.operand2 = operand2
     self.bin_operator = bin_operator
+    # for type checking
+    self.type = None
   def __str__(self):
     return f"Binary({self.bin_operator}, {self.operand1}, {self.operand2})"
 
@@ -297,6 +317,8 @@ class AssignExpression(ExpressionRecord):
   def __init__(self,lhs_expr,rhs_expr,line_range):
     self.lhs_expr = lhs_expr
     self.rhs_expr = rhs_expr
+    # for type checking
+    self.type = None
   def __str__(self):
     return f"Assign({self.lhs_expr}, {self.rhs_expr})"
 
@@ -306,6 +328,8 @@ class AutoExpression(ExpressionRecord):
     self.operand = operand
     self.inc_or_dec = inc_or_dec
     self.post_or_pre = post_or_pre
+    # for type checking
+    self.type = None
   def __str__(self):
     return f"Auto({self.operand}, {self.inc_or_dec}, {self.post_or_pre})"
 
@@ -314,6 +338,10 @@ class FieldAccessExpression(ExpressionRecord):
     super().__init__(line_range)
     self.baseExpr = baseExpr
     self.fieldName = fieldName
+    # type checking
+    self.theField = None
+    # for type checking
+    self.type = None
   def __str__(self):
     return f"Field-access({self.baseExpr}, {self.fieldName})"
 
@@ -322,6 +350,10 @@ class MethodCallExpression(ExpressionRecord):
     self.base = base
     self.method_name = method_name
     self.expressions = []
+    # for type checking
+    self.theMethod = None
+    # for type checking
+    self.type = None
   def append_expr_to_method_call_expr(self,expr):
     self.expressions.append(expr)
   def __str__(self):
@@ -332,6 +364,10 @@ class NewObjectExpression(ExpressionRecord):
   def __init__(self,base_class_name):
     self.base_class_name = base_class_name
     self.arguments = []
+    # for type checking
+    self.theConstructor = None
+    # for type checking
+    self.type = None
   def append_argument_to_new_obj_expr(self,arg):
     self.arguments.append(arg)
   def __str__(self):
@@ -340,17 +376,23 @@ class NewObjectExpression(ExpressionRecord):
 class ThisExpression(ExpressionRecord):
   def __init__(self,content,line_range):
     self.content = content
+    # for type checking
+    self.type = None
   def __str__(self):
     return f"{self.content}"
 
 class SuperExpression(ExpressionRecord):
   def __init__(self,content,line_range):
     self.content = content
+    # for type checking
+    self.type = None
   def __str__(self):
     return f"{self.content}"
 
 class ClassReferenceExpression(ExpressionRecord):
-  pass
+  def __init__(self):
+    # for type checking
+    self.type = None
 
 # End ExpressionRecord subclasses
 

@@ -1,8 +1,8 @@
 class A {
   private static int x,y,z;
   public A(){
-    float x;
-    x = y;
+    x = 5;
+    y = super;
   }
 
 }
@@ -10,8 +10,6 @@ class A {
 class B{
   float x,y;
   private void lll(int x,float y){
-    int aa;
-    aaaaa = ff= ff;
-    return x = y;
+    this.y = new A();
   }
 }

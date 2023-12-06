@@ -5,6 +5,7 @@
 import sys
 import ply.lex as lex
 import ply.yacc as yacc
+from decaf_typecheck import TypeChecker
 
 def just_scan():
     fn = sys.argv[1] if len(sys.argv) > 1 else ""
@@ -45,6 +46,10 @@ def main():
     print()
     print("YES")
     print()
+
+    # do type checking
+    typeChecker = TypeChecker(result)
+    typeChecker.run()
 
 if __name__ == "__main__":
     just_scan()
