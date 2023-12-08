@@ -175,6 +175,9 @@ class TypeRecord:
     else:
       type_res_string = f'user({self.type})'
     return type_res_string
+  def __eq__(self, other: object) -> bool:
+    if isinstance(other, TypeRecord):
+      return self.type == other.type
 
 class StatementRecord:
   pass

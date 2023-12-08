@@ -1,15 +1,23 @@
 class A {
   private static int x,y,z;
-  public A(){
-    x = 5;
-    y = super;
-  }
+  public A(int x,float s){
+    
+    int a;
+    int b;
+    float c;
+    boolean f;
+    boolean g;
+    
+    a++;
+    --b;
+    c++;
+    g--;
 
+  }
 }
 
 class B{
-  float x,y;
-  private void lll(int x,float y){
-    this.y = new A();
+  private B(int yyyy){
+    float b;
   }
 }
