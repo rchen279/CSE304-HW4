@@ -1,23 +1,6 @@
 class A {
   private static int x,y,z;
   public A(int x,float s){
-    
-    int a;
-    int b;
-    float c;
-    boolean f;
-    boolean g;
-    
-    a++;
-    --b;
-    c++;
-    g--;
-
-  }
-}
-
-class B{
-  private B(int yyyy){
-    float b;
+    s = 5.5;
   }
 }
