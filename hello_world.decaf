@@ -1,6 +1,11 @@
-class A {
+class A extends B {
   private static int x,y,z;
   public A(int x,float s){
-    s = 5.5;
+    if (true){
+      x = 5;
+    } else{
+      s = 5.5;
+      x = 5;
+    }
   }
 }
