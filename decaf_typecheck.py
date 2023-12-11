@@ -109,14 +109,53 @@ class TypeChecker:
       print("the while statement resolved to ---- {ws}".format(ws=stmt_record.isTypeCorrect))
 
     elif isinstance(stmt_record,ForStmt):
-      print("inside for expression")
+      # print("inside for expression")
+      isCondBool = True
+      tc_init = True
+      tc_update = True
+      tc_body = True
 
-      print(stmt_record.init)
-      print(stmt_record.cond)
-      print(stmt_record.update)
-      print(stmt_record.body)
+      # resolve type correctness of init
+      if stmt_record.init is not None:
+        # print("the init type before was {tr}".format(tr=stmt_record.init.type))
+        tc_init = self.wrapAndResolveExprStmtTypeCorrect(stmt_record.init)
+        # print("the init type after is {tr}".format(tr=stmt_record.init.type))
+        # print("the type correctness also has resolved to... ")
+        # print(tc_init)
+        if tc_init == False:
+          self.type_checking_errors.append("FOR statement - Type error in initializer")
 
-      # print("for stmt resolved to tc {tc}",tc=stmt_record.isTypeCorrect)
+      # resolve type correctness of update
+      if stmt_record.update is not None:
+        # print("the update type before was {tr}".format(tr=stmt_record.update.type))
+        tc_update = self.wrapAndResolveExprStmtTypeCorrect(stmt_record.update)
+        # print("the udpate type after is {tr}".format(tr=stmt_record.update.type))
+        # print("the type correctness also has resolved to... ")
+        # print(tc_update)
+        if tc_update == False:
+          self.type_checking_errors.append("FOR statement - Type error in update expression")
+      
+      
+      # resolve type correct body
+      if type(stmt_record.body) in [IfStmt,WhileStmt,ForStmt,ReturnStmt,ExprStmt,BlockStmt]:
+        if (stmt_record.body.isTypeCorrect is None):
+          self.resolveStatementRecordTypeCorrect(stmt_record.body)
+        tc_body = stmt_record.body.isTypeCorrect
+        if tc_body == False:
+          self.type_checking_errors.append("FOR statement - Type error in loop body")
+      else:
+        pass # otherwise body is type correct
+      
+      if stmt_record.cond is not None:
+        if stmt_record.cond.type is None:
+          self.resolveExpressionRecordType(stmt_record.cond)
+          isCondBool = stmt_record.cond.type == TypeRecord("boolean")
+          if isCondBool == False:
+            self.type_checking_errors.append("FOR statement - Condition not boolean")
+
+
+      stmt_record.isTypeCorrect = ((isCondBool == True) and (tc_init == True) and (tc_update == True) and (tc_body == True))
+      # print("for stmt resolved to tc {tc}".format(tc=stmt_record.isTypeCorrect))
 
     elif isinstance(stmt_record,ReturnStmt):
       pass
@@ -193,6 +232,11 @@ class TypeChecker:
     # return True
     
   
+  def wrapAndResolveExprStmtTypeCorrect(self,assign_or_auto_or_method_call)->bool:
+    wrapped = ExprStmt(assign_or_auto_or_method_call)    
+    self.resolveStatementRecordTypeCorrect(wrapped)
+    return wrapped.isTypeCorrect
+
   def resolveAssignExprTypeCorrect(self,assignExp) -> bool:
     # print("inside resolveAssignExprTypeCorrect")
     # resolve the type for assign expr
