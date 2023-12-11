@@ -1,12 +1,11 @@
 class A extends B {
   private static int x,y,z;
   public A(int x,float s){
-    
+
   }
 
   public int D(int c){
-    
-    
+        
   }
 
   

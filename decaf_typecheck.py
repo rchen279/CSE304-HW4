@@ -340,14 +340,13 @@ class TypeChecker:
 
     elif isinstance(expression_record,BinaryExpression):
       # print("inside Binary Expression")
-      # resolve Binary Expression Type
       bin_op = expression_record.bin_operator
-      # print("the bin op is ") # string
-      # print(bin_op)
 
       # resolve operand types
-      self.resolveExpressionRecordType(expression_record.operand1)
-      self.resolveExpressionRecordType(expression_record.operand2)
+      if expression_record.operand1.type is None:
+        self.resolveExpressionRecordType(expression_record.operand1)
+      if expression_record.operand2.type is None:
+        self.resolveExpressionRecordType(expression_record.operand2)
 
       # TypeRecord()
       o1_type = expression_record.operand1.type
@@ -365,10 +364,7 @@ class TypeChecker:
           expression_record.type = TypeRecord("float")
         else:
           expression_record.type = TypeRecord("error")
-
-        # print("the resolved type for bin expr is ")
-        # print(expression_record)
-        # print(expression_record.type)
+          self.type_checking_errors.append("Bad operands for {bin_e}".format(bin_e=expression_record))
 
       elif bin_op in ["and","or"]:
         # print("boolean detected")
@@ -376,10 +372,7 @@ class TypeChecker:
           expression_record.type = TypeRecord("boolean")
         else:
           expression_record.type = TypeRecord("error")
-
-        # print("the resolved type for bin expr is ")
-        # print(expression_record)
-        # print(expression_record.type)
+          self.type_checking_errors.append("Bad operands for {bin_e}".format(bin_e=expression_record))
 
       elif bin_op in ["lt","leq","gt","geq"]:
         # print("arithmetic comparison detected ")
@@ -390,15 +383,14 @@ class TypeChecker:
           expression_record.type = TypeRecord("boolean")
         else:
           expression_record.type = TypeRecord("error")
-
-        # print("the resolved type for bin expr is ")
-        # print(expression_record)
-        # print(expression_record.type)
+          self.type_checking_errors.append("Bad operands for {bin_e}".format(bin_e=expression_record))
 
       else: # eq, neq
         # print("equality comparison detected")
-        # to be implemented
-        pass
+        if self.isSubtype(o1_type,o2_type) or self.isSubtype(o2_type,o1_type):
+          expression_record.type = TypeRecord("boolean")
+        else:
+          expression_record.type = TypeRecord("error")
 
     elif isinstance(expression_record,AssignExpression):
       # print("assign expression detected")
@@ -421,9 +413,11 @@ class TypeChecker:
         expression_record.type = expression_record.operand.type
       else:
         expression_record.type = TypeRecord("error")
+        self.type_checking_errors.append("Bad auto expression {ae}".format(ae=expression_record))
 
     elif isinstance(expression_record,FieldAccessExpression):
-      # expression_record.type = .... 
+      print("field access detected")
+      
       pass
     elif isinstance(expression_record,MethodCallExpression):
       # expression_record.type = .... 
