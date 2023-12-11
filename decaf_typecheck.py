@@ -57,11 +57,17 @@ class TypeChecker:
       if stmt_record.condition.type is None:
         self.resolveExpressionRecordType(stmt_record.condition)
 
+      validIfCond = stmt_record.condition.type == TypeRecord("boolean")
+      if (validIfCond == False):
+        self.type_checking_errors.append("IF statement - Condition not boolean")
+
       tc_then = False
       if type(stmt_record.thenStmt) in [IfStmt,WhileStmt,ForStmt,ReturnStmt,ExprStmt,BlockStmt]:
         if stmt_record.thenStmt.isTypeCorrect is None:
           self.resolveStatementRecordTypeCorrect(stmt_record.thenStmt)
         tc_then = stmt_record.thenStmt.isTypeCorrect
+        if tc_then == False:
+          self.type_checking_errors.append("IF statement - Type error in THEN statement")
       else: # [BreakStmt,ContinueStmt,VarDecl (not in ast), Semicolon]
         tc_then = True
 
@@ -74,11 +80,15 @@ class TypeChecker:
           if stmt_record.elseStmt.isTypeCorrect is None:
             self.resolveStatementRecordTypeCorrect(stmt_record.elseStmt)
           tc_else = stmt_record.elseStmt.isTypeCorrect
+          if tc_else == False:
+            self.type_checking_errors.append("IF statement - Type error in ELSE statement")
         else:
           tc_else = True
 
-      stmt_record.isTypeCorrect = (stmt_record.condition.type == TypeRecord("boolean")) and (tc_then == True) and (tc_else == True)
+      stmt_record.isTypeCorrect = (validIfCond == True) and (tc_then == True) and (tc_else == True)
+
       # print("the if statement resolved to -> {f}".format(f=stmt_record.isTypeCorrect))
+
     elif isinstance(stmt_record,WhileStmt):
       # print("handle while stmt...")
       if(stmt_record.condition.type is None):
@@ -88,40 +98,24 @@ class TypeChecker:
         self.resolveStatementRecordTypeCorrect(stmt_record.body)
 
       isBoolCond = stmt_record.condition.type == TypeRecord("boolean")
+      if isBoolCond == False:
+        self.type_checking_errors.append("WHILE statement - Condition not boolean")
+
       isBodyTC = stmt_record.body.isTypeCorrect
+      if isBodyTC == False:
+        self.type_checking_errors.append("WHILE statement - Type error in loop body")
       stmt_record.isTypeCorrect = isBoolCond and isBodyTC
+
       print("the while statement resolved to ---- {ws}".format(ws=stmt_record.isTypeCorrect))
+
     elif isinstance(stmt_record,ForStmt):
-      # print("inside for expression")
+      print("inside for expression")
 
-      tc_init = False
-      isBool_cond = False
-      tc_update = False
-      tc_body = False
-
-      if (stmt_record.init is None):
-        # print("init is none")
-        pass
-      else:
-        print(stmt_record.init)
-        print(type(stmt_record.init))
-        print(stmt_record.init.type)
-
-      if (stmt_record.cond is None):
-        # print("cond is none")
-        pass
-      else:
-        print(stmt_record.cond)
-
-      if (stmt_record.update is None):
-        # print("update is none")
-        pass
-      else:
-        print(stmt_record.update)
-
+      print(stmt_record.init)
+      print(stmt_record.cond)
+      print(stmt_record.update)
       print(stmt_record.body)
 
-      stmt_record.isTypeCorrect = (tc_init == True) and (isBool_cond == True) and (tc_update == True) and (tc_body == True)
       # print("for stmt resolved to tc {tc}",tc=stmt_record.isTypeCorrect)
 
     elif isinstance(stmt_record,ReturnStmt):
@@ -417,7 +411,7 @@ class TypeChecker:
 
     elif isinstance(expression_record,FieldAccessExpression):
       print("field access detected")
-      
+
       pass
     elif isinstance(expression_record,MethodCallExpression):
       # expression_record.type = .... 
