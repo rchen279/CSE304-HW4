@@ -1,8 +1,8 @@
 from decaf_ast import *
-import sys
 class TypeChecker:
   # some helper stuff
   current_constructor_variable_table = None
+  current_method_variable_table = None
   current_class_name = None
   def __init__(self,ast):
     self.ast = ast
@@ -20,15 +20,11 @@ class TypeChecker:
     • null is a subtype of user(A) for any class A
     • class-literal(A) is a subtype of class-literal(B) if A is a subclass of B.
     '''
-    print("inside is subtype for arguments ")
-    print(str(e1) + str(type(e1)))
-    print(str(e2) + str(type(e2)))
-
     if e1 == e2:
-      print("Type T is a subtype of itself")
+      # print("Type T is a subtype of itself")
       return True
     elif e1 == TypeRecord("int") and e2 == TypeRecord("float"):
-      print("int is a subtype of float")
+      # print("int is a subtype of float")
       return True
 
 
@@ -56,7 +52,7 @@ class TypeChecker:
     
     # print("inside checkStatementRecordType")
     if isinstance(stmt_record,IfStmt):
-      print("resolving if statement")
+      # print("resolving if statement")
       # condition is expr and all expr has type field
       if stmt_record.condition.type is None:
         self.resolveExpressionRecordType(stmt_record.condition)
@@ -71,7 +67,7 @@ class TypeChecker:
 
       tc_else = False
       if (stmt_record.elseStmt is None):
-        print("if stmt has no else branch")
+        # print("if stmt has no else branch")
         tc_else = True
       else:
         if type(stmt_record.elseStmt) in [IfStmt,WhileStmt,ForStmt,ReturnStmt,ExprStmt,BlockStmt]:
@@ -84,7 +80,7 @@ class TypeChecker:
       stmt_record.isTypeCorrect = (stmt_record.condition.type == TypeRecord("boolean")) and (tc_then == True) and (tc_else == True)
       # print("the if statement resolved to -> {f}".format(f=stmt_record.isTypeCorrect))
     elif isinstance(stmt_record,WhileStmt):
-      print("handle while stmt...")
+      # print("handle while stmt...")
       if(stmt_record.condition.type is None):
         self.resolveExpressionRecordType(stmt_record.condition)
       # body is block stmt
@@ -96,7 +92,7 @@ class TypeChecker:
       stmt_record.isTypeCorrect = isBoolCond and isBodyTC
       print("the while statement resolved to ---- {ws}".format(ws=stmt_record.isTypeCorrect))
     elif isinstance(stmt_record,ForStmt):
-      print("inside for expression")
+      # print("inside for expression")
 
       tc_init = False
       isBool_cond = False
@@ -104,47 +100,51 @@ class TypeChecker:
       tc_body = False
 
       if (stmt_record.init is None):
-        print("init is none")
+        # print("init is none")
+        pass
       else:
         print(stmt_record.init)
         print(type(stmt_record.init))
         print(stmt_record.init.type)
 
       if (stmt_record.cond is None):
-        print("cond is none")
+        # print("cond is none")
+        pass
       else:
         print(stmt_record.cond)
 
       if (stmt_record.update is None):
-        print("update is none")
+        # print("update is none")
+        pass
       else:
         print(stmt_record.update)
 
       print(stmt_record.body)
 
       stmt_record.isTypeCorrect = (tc_init == True) and (isBool_cond == True) and (tc_update == True) and (tc_body == True)
-      print("for stmt resolved to tc {tc}",tc=stmt_record.isTypeCorrect)
+      # print("for stmt resolved to tc {tc}",tc=stmt_record.isTypeCorrect)
 
     elif isinstance(stmt_record,ReturnStmt):
       pass
     elif isinstance(stmt_record,ExprStmt):
       # assign expression, auto expression, method call expression
-      print("handling expr stmt")
+      # print("handling expr stmt")
       tc_expr_stmt = False
       if isinstance(stmt_record.expr,AssignExpression):
-        print("assign expression detectdd")
+        # print("assign expression detectdd")
         tc_expr_stmt = self.resolveAssignExprTypeCorrect(stmt_record.expr)
       elif isinstance(stmt_record.expr,AutoExpression):
-        print("auto expression detected")
+        # print("auto expression detected")
         tc_expr_stmt = self.resolveAutoExprTypeCorrect(stmt_record.expr)
       else:
-        print("method call expression detected")
+        # print("method call expression detected")
+        pass
       
       stmt_record.isTypeCorrect = tc_expr_stmt
-      print("the newly resolved auto expression is type correct? {tc}".format(tc=stmt_record.isTypeCorrect))
+      # print("the newly resolved auto expression is type correct? {tc}".format(tc=stmt_record.isTypeCorrect))
 
     elif isinstance(stmt_record,BlockStmt):
-      print("block stmt detected")
+      # print("block stmt detected")
       tc_block_smt = True
       for stmt in stmt_record.block_stmts:
         if type(stmt) in [IfStmt,WhileStmt,ForStmt,ReturnStmt,ExprStmt,BlockStmt]:
@@ -164,7 +164,7 @@ class TypeChecker:
     self.checkStmtTypeCorrectInvariant(stmt_record.isTypeCorrect)
       
   def resolveTypeCorrectExprStmt(self,expr_smt) -> None:
-    print("inside checkTypeCorrectExprStmt for " + str(expr_smt))
+    # print("inside checkTypeCorrectExprStmt for " + str(expr_smt))
 
     # the expression -> 
     print(type(expr_smt))
@@ -177,7 +177,7 @@ class TypeChecker:
         # print("Assign Expr lhs type was None...now resolving")
         self.resolveExpressionRecordType(exp.lhs_expr)
         if exp.lhs_expr.type == TypeRecord("error"):
-          print("Resolve Failed: lhs of AssignExpr has invalid type")
+          # print("Resolve Failed: lhs of AssignExpr has invalid type")
           return False
       else:
         pass
@@ -186,7 +186,8 @@ class TypeChecker:
         # print("Assign Expr rhs type was None...now resolving")
         print(type(exp.rhs_expr))
         if isinstance(exp.rhs_expr, AssignExpression):
-          print("Assign rhs is also an Assign, yet to be resolved")
+          # print("Assign rhs is also an Assign, yet to be resolved")
+          pass
         self.resolveExpressionRecordType(exp.rhs_expr)
       else:
         pass
@@ -199,7 +200,7 @@ class TypeChecker:
     
   
   def resolveAssignExprTypeCorrect(self,assignExp) -> bool:
-    print("inside resolveAssignExprTypeCorrect")
+    # print("inside resolveAssignExprTypeCorrect")
     # resolve the type for assign expr
     if assignExp.type == None:
       self.resolveExpressionRecordType(assignExp)
@@ -207,10 +208,12 @@ class TypeChecker:
     # not sure? assume e1 and e2 are type correct as they have been resolved
     # check if e2 is subtype of e1
     is_subtype = self.isSubtype(assignExp.rhs_expr.type,assignExp.lhs_expr.type)
+    if is_subtype == False:
+      self.type_checking_errors.append("Error in {ae}".format(ae=assignExp))
     return is_subtype
 
   def resolveAutoExprTypeCorrect(self,autoexpr) -> bool:
-    print("inside resolve tc auto expr")
+    # print("inside resolve tc auto expr")
     if (autoexpr.type is None):
       self.resolveExpressionRecordType(autoexpr)
     return autoexpr.type != TypeRecord("error")
@@ -266,7 +269,7 @@ class TypeChecker:
     '''
 
     if isinstance(expression_record,ConstantExpression):
-      print("resolving constant expression")
+      # print("resolving constant expression")
       # ["", "", "","void","class-literal","error",""]
         #   ConstantExpression
         #   constExprType, const_val
@@ -293,18 +296,15 @@ class TypeChecker:
       # print("........................")
 
     elif isinstance(expression_record,VarExpression):
-      print("var expression detected ")
-
-      # print("the variable id is")
-      # print(expression_record.var_id)
-
-      # print("the var table is ")
-      # print(TypeChecker.current_constructor_variable_table)
-
-      # retrieve var record from constructor variable table -> want type of var
+      # print("var expression detected ")
+      theVarTable = None
+      if (TypeChecker.current_constructor_variable_table):
+        theVarTable = TypeChecker.current_constructor_variable_table.varTable
+      else:
+        theVarTable = TypeChecker.current_method_variable_table.varTable
 
       theVarRecord = None
-      for v_record in TypeChecker.current_constructor_variable_table.varTable:
+      for v_record in theVarTable:
         # items are VariableRecord (variable_name, variable_id, variable_kind, type)
         if expression_record.var_id == v_record.variable_name:
           theVarRecord = v_record
@@ -315,35 +315,31 @@ class TypeChecker:
         pass
 
       if expression_record.type is None:
-        print("could not resolve the var expression type, set to type error")
+        # print("could not resolve the var expression type, set to type error")
+        self.type_checking_errors.append("Could not resolve varexpr {ve}".format(ve=expression_record.var_id))
         expression_record.type = TypeRecord("error")
 
 
     elif isinstance(expression_record,UnaryExpression):
-      print("Unary Expr Detected")
+      # print("Unary Expr Detected")
       # unary expression is (operand, operator, type)
       # resolve e type
-      self.resolveExpressionRecordType(expression_record.operand)
+      if expression_record.operand.type is None:
+        self.resolveExpressionRecordType(expression_record.operand)
+
       if expression_record.operator == "uminus":
         if (expression_record.operand.type == TypeRecord("int") or expression_record.operand.type == TypeRecord("float")):
           expression_record.type = expression_record.operand.type
         else:
+          self.type_checking_errors.append("Unary Expr operand is not int or float")
           expression_record.type = TypeRecord("error")
       else: # operator == "neg"
         expression_record.type = (expression_record.operand.type if expression_record.operand.type == TypeRecord("boolean") else TypeRecord("error"))
+        if (expression_record.type == TypeRecord("error")):
+          self.type_checking_errors.append("Unary Expr operand is not boolean")
 
     elif isinstance(expression_record,BinaryExpression):
-      # expression_record.type = .... 
-
-# 4. Binary-expressions:
-#     o Arithmetic comparisons: lt, leq, gt, geq: have type boolean if both operands have type
-#     int or float; otherwise have type error.
-#     o Equality comparisons eq, neq: have type boolean if the type of one operand is a subtype of
-#     another; otherwise have type error.
-      
-  #   BinaryExpression(operand1,operand2,bin_operator, type = None)
-
-      print("inside Binary Expression")
+      # print("inside Binary Expression")
       # resolve Binary Expression Type
       bin_op = expression_record.bin_operator
       # print("the bin op is ") # string
@@ -358,7 +354,7 @@ class TypeChecker:
       o2_type = expression_record.operand2.type
 
       if bin_op in ["add","sub","mul","div"]:
-        print("arithmetic operation detected")
+        # print("arithmetic operation detected")
         if (o1_type == TypeRecord("int") and o2_type == TypeRecord("int")):
           expression_record.type = TypeRecord("int")
         elif (o1_type == TypeRecord("int") and o2_type == TypeRecord("float")):
@@ -375,7 +371,7 @@ class TypeChecker:
         # print(expression_record.type)
 
       elif bin_op in ["and","or"]:
-        print("boolean detected")
+        # print("boolean detected")
         if (o1_type == TypeRecord("boolean") and o2_type == TypeRecord("boolean")):
           expression_record.type = TypeRecord("boolean")
         else:
@@ -386,7 +382,7 @@ class TypeChecker:
         # print(expression_record.type)
 
       elif bin_op in ["lt","leq","gt","geq"]:
-        print("arithmetic comparison detected ")
+        # print("arithmetic comparison detected ")
         o1_int_or_float = o1_type == TypeRecord("int") or o1_type == TypeRecord("float")
         o2_int_or_float = o2_type == TypeRecord("int") or o2_type == TypeRecord("float")
           
@@ -400,11 +396,12 @@ class TypeChecker:
         # print(expression_record.type)
 
       else: # eq, neq
-        print("equality comparison detected")
+        # print("equality comparison detected")
         # to be implemented
+        pass
 
     elif isinstance(expression_record,AssignExpression):
-      print("assign expression detected")
+      # print("assign expression detected")
       # assign e1 = e2
       # resolve e1 type
       if (expression_record.lhs_expr.type is None):
@@ -417,7 +414,7 @@ class TypeChecker:
       expression_record.type = expression_record.rhs_expr.type
       
     elif isinstance(expression_record,AutoExpression):
-      print("auto expression detected")
+      # print("auto expression detected")
       if (expression_record.operand.type is None):
         self.resolveExpressionRecordType(expression_record.operand)
       if (expression_record.operand.type == TypeRecord("int")) or (expression_record.operand.type == TypeRecord("float")):
@@ -436,7 +433,7 @@ class TypeChecker:
       pass
     elif isinstance(expression_record,ThisExpression):
       # expression_record.type = .... 
-      print("this expression detected ")
+      # print("this expression detected ")
       expression_record.type = TypeRecord(TypeChecker.current_class_name)
 
     elif isinstance(expression_record,SuperExpression):
@@ -449,68 +446,70 @@ class TypeChecker:
     # check invariant before return
     self.checkResolveExprRecTypeInvariant(expression_record.type)
 
-  def resolveConstructor(self,constructor):
-    # constructor -> ConstructorRecord()
-    for params in constructor.constructor_parameters: # <class 'list'>
-      # print(params)
+  def resolveConstructor(self,constructor) -> bool:
+    for params in constructor.constructor_parameters:
       pass
-    for var in constructor.variable_table.varTable: # <class 'list'>
-      # <class 'decaf_ast.VariableRecord'>
-      # print(type(var))
+    for var in constructor.variable_table.varTable:
       pass
-    for b_smt in constructor.constructor_body.block_stmts:
-      # b_smt instances of -> IfStmt, WhileStmt, ForStmt, ReturnStmt, ExprStmt, BreakStmt, ContinueStmt, BlockStmt
-      # print("inside constructor body block stmts ----------------------------------")
-      
-      if type(b_smt) in [IfStmt,WhileStmt,ForStmt,ReturnStmt,ExprStmt,BlockStmt]:
-        # resolve b_smt.isTypeCorrect -> True/False
-        print("now checking statement " + str(b_smt) + " " + str(type(b_smt)))
-        self.resolveStatementRecordTypeCorrect(b_smt)
-        if b_smt.isTypeCorrect == False:
-          print("b_smt has error resolving type -- should we abort??? ")
-          raise ValueError("bad statement")
-      else:
-        print("No need to check for constructor body b_smt -- " + str(b_smt))
+    
+    if constructor.constructor_body.isTypeCorrect is None:
+      self.resolveStatementRecordTypeCorrect(constructor.constructor_body)
+    tc_constructor_body = constructor.constructor_body.isTypeCorrect
+    return tc_constructor_body
 
-  def resolveMethod(self,method):
-    pass
-  def resolveField(self,field):
-    pass
+  def resolveMethod(self,method_record) -> bool:
+  #  print("inside the resolve function ehehhe")
+    m_body = method_record.method_body
+    if (m_body.isTypeCorrect is None):
+      self.resolveStatementRecordTypeCorrect(m_body)
+    tc_method_rec = m_body.isTypeCorrect
+    return tc_method_rec
+
+  def resolveField(self,field) -> bool:
+    print("Now trying to resolve field")
+    print(field)
+
   def run(self):
-    print("running type checker")
-    print("...............................................................")
-    print("...............................................................")
-    print("...............................................................")
-    print("...............................................................")
-    print("...............................................................")
-    print("...............................................................")
-    print("...............................................................")
-    print("...............................................................")
+    print("Now running the type checker")
     print("...............................................................")
     print("...............................................................")
 
+    is_program_type_correct = True
     for class_record in self.ast.class_records:
+      print("handling class {cr}".format(cr=class_record.class_name))
       TypeChecker.current_class_name = class_record.class_name
-
-      # constructors, methods, fields
       for constructor in class_record.class_constructors:
-       # resolve name
-
-       # map constructor id to its variable table
-      #  self.class_constructor_variable_tables[constructor.constructor_id] = constructor.variable_table
-        
-        # assign the constructor variable table
         TypeChecker.current_constructor_variable_table = constructor.variable_table
-        # print("updating..... ")
-        # print(TypeChecker.current_constructor_variable_table)
-        self.resolveConstructor(constructor)
-      for method in class_record.methods:
-        self.resolveMethod(method)
+        tc_constructor = self.resolveConstructor(constructor)
+        if tc_constructor == False:
+          is_program_type_correct = False
+
+      # done handling constructors
+      TypeChecker.current_constructor_variable_table = None
+
+      for method_record in class_record.methods:
+        TypeChecker.current_method_variable_table = method_record.variable_table
+        tc_method = self.resolveMethod(method_record)
+        if tc_method == False:
+          is_program_type_correct = False
+
       for field in class_record.fields:
         self.resolveField(field)
+
+    print()
+    print("Type Checker Finished")
+    print("Is the program type correct? ")
+    if(is_program_type_correct):
+      print("Type Correct Program! Yay!")
+    else:
+      print("Nope. Something was wrong with types ..")
+    print("--------------------------")
+    print("The following errors were detected:")
+    for err in self.type_checking_errors:
+      print(err)
 
   def checkStmtTypeCorrectInvariant(self,s):
     assert isinstance(s,bool)
 
   def checkResolveExprRecTypeInvariant(self,e):
-    assert isinstance(e,TypeRecord)#
+    assert isinstance(e,TypeRecord)
