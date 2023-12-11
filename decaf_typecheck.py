@@ -4,6 +4,7 @@ class TypeChecker:
   current_constructor_variable_table = None
   current_method_variable_table = None
   current_class_name = None
+  current_method = None
   def __init__(self,ast):
     self.ast = ast
     self.type_checking_errors = []
@@ -158,7 +159,22 @@ class TypeChecker:
       # print("for stmt resolved to tc {tc}".format(tc=stmt_record.isTypeCorrect))
 
     elif isinstance(stmt_record,ReturnStmt):
-      pass
+      # print("return stmt detected")
+      mt_return = TypeChecker.current_method.return_type
+      tc_return = True
+
+      return_val = stmt_record.val
+      if return_val is None:
+        if mt_return is not None:
+          tc_return = False
+          self.type_checking_errors.append("RETURN statement - NON-VOID method returns nothing")
+      else:
+        if return_val.type is None:
+          self.resolveExpressionRecordType(return_val)
+        if self.isSubtype(return_val.type,mt_return) == False:
+          tc_return = False
+          self.type_checking_errors.append("RETURN statement - Type Mismatch")
+      stmt_record.isTypeCorrect = tc_return
     elif isinstance(stmt_record,ExprStmt):
       # assign expression, auto expression, method call expression
       # print("handling expr stmt")
@@ -171,7 +187,7 @@ class TypeChecker:
         tc_expr_stmt = self.resolveAutoExprTypeCorrect(stmt_record.expr)
       else:
         # print("method call expression detected")
-        pass
+        tc_expr_stmt = self.resolveMethodCallExpressionTypeCorrect(stmt_record.expr)
       
       stmt_record.isTypeCorrect = tc_expr_stmt
       # print("the newly resolved auto expression is type correct? {tc}".format(tc=stmt_record.isTypeCorrect))
@@ -249,6 +265,11 @@ class TypeChecker:
     if is_subtype == False:
       self.type_checking_errors.append("Error in {ae}".format(ae=assignExp))
     return is_subtype
+
+  def resolveMethodCallExpressionTypeCorrect(self,method_call_expr) -> bool:
+    print("inside method call expr")
+    print(method_call_expr)
+    return True
 
   def resolveAutoExprTypeCorrect(self,autoexpr) -> bool:
     # print("inside resolve tc auto expr")
@@ -369,16 +390,32 @@ class TypeChecker:
         if (expression_record.operand.type == TypeRecord("int") or expression_record.operand.type == TypeRecord("float")):
           expression_record.type = expression_record.operand.type
         else:
-          self.type_checking_errors.append("Unary Expr operand is not int or float")
+          self.type_checking_errors.append("UNARY MINUS - Expression is not a number")
           expression_record.type = TypeRecord("error")
       else: # operator == "neg"
         expression_record.type = (expression_record.operand.type if expression_record.operand.type == TypeRecord("boolean") else TypeRecord("error"))
         if (expression_record.type == TypeRecord("error")):
-          self.type_checking_errors.append("Unary Expr operand is not boolean")
+          self.type_checking_errors.append("UNARY NEGATION - Expression is not boolean")
 
     elif isinstance(expression_record,BinaryExpression):
       # print("inside Binary Expression")
       bin_op = expression_record.bin_operator
+
+      
+      toErrStr = {
+        "add": "BINARY ADDITION",
+        "sub": "BINARY SUBTRACTION",
+        "mul": "BINARY MULTIPLICATION",
+        "div": "BINARY DIVISION",
+        "and": "BINARY AND",
+        "or": "BINARY OR",
+        "lt": "BINARY LESS THAN",
+        "leq": "BINARY LESS THAN OR EQUAL",
+        "gt": "BINARY GREATER THAN",
+        "geq": "BINARY GREATER THAN OR EQUAL",
+        "eq": "BINARY EQUALITY", 
+        "neq":"BINARY INEQUALITY"
+      }
 
       # resolve operand types
       if expression_record.operand1.type is None:
@@ -402,7 +439,7 @@ class TypeChecker:
           expression_record.type = TypeRecord("float")
         else:
           expression_record.type = TypeRecord("error")
-          self.type_checking_errors.append("Bad operands for {bin_e}".format(bin_e=expression_record))
+          self.type_checking_errors.append("{be} - Operand not a number".format(be=toErrStr[bin_op]))
 
       elif bin_op in ["and","or"]:
         # print("boolean detected")
@@ -410,7 +447,7 @@ class TypeChecker:
           expression_record.type = TypeRecord("boolean")
         else:
           expression_record.type = TypeRecord("error")
-          self.type_checking_errors.append("Bad operands for {bin_e}".format(bin_e=expression_record))
+          self.type_checking_errors.append("{be} - Operand not a boolean".format(be=toErrStr[bin_op]))
 
       elif bin_op in ["lt","leq","gt","geq"]:
         # print("arithmetic comparison detected ")
@@ -421,7 +458,7 @@ class TypeChecker:
           expression_record.type = TypeRecord("boolean")
         else:
           expression_record.type = TypeRecord("error")
-          self.type_checking_errors.append("Bad operands for {bin_e}".format(bin_e=expression_record))
+          self.type_checking_errors.append("{bin_e} - Operand not a number".format(bin_e=toErrStr[bin_op]))
 
       else: # eq, neq
         # print("equality comparison detected")
@@ -429,6 +466,7 @@ class TypeChecker:
           expression_record.type = TypeRecord("boolean")
         else:
           expression_record.type = TypeRecord("error")
+          self.type_checking_errors.append("{be} - Operands are not of congruent types".format(be=toErrStr[bin_op]))
 
     elif isinstance(expression_record,AssignExpression):
       # print("assign expression detected")
@@ -445,13 +483,15 @@ class TypeChecker:
       
     elif isinstance(expression_record,AutoExpression):
       # print("auto expression detected")
+      toErrStr = "AUTO-INCREMENT" if expression_record.inc_or_dec == "inc" else "AUTO-DECREMENT"
+
       if (expression_record.operand.type is None):
         self.resolveExpressionRecordType(expression_record.operand)
       if (expression_record.operand.type == TypeRecord("int")) or (expression_record.operand.type == TypeRecord("float")):
         expression_record.type = expression_record.operand.type
       else:
         expression_record.type = TypeRecord("error")
-        self.type_checking_errors.append("Bad auto expression {ae}".format(ae=expression_record))
+        self.type_checking_errors.append("{ae} - Operand is not a number".format(ae=toErrStr))
 
     elif isinstance(expression_record,FieldAccessExpression):
       print("field access detected")
@@ -464,7 +504,6 @@ class TypeChecker:
       # expression_record.type = .... 
       pass
     elif isinstance(expression_record,ThisExpression):
-      # expression_record.type = .... 
       # print("this expression detected ")
       expression_record.type = TypeRecord(TypeChecker.current_class_name)
 
@@ -502,13 +541,12 @@ class TypeChecker:
     print(field)
 
   def run(self):
-    print("Now running the type checker")
-    print("...............................................................")
-    print("...............................................................")
+    print("Now running the type checker ..................... ")
+    print()
 
     is_program_type_correct = True
     for class_record in self.ast.class_records:
-      print("handling class {cr}".format(cr=class_record.class_name))
+      # print("handling class {cr}".format(cr=class_record.class_name))
       TypeChecker.current_class_name = class_record.class_name
       for constructor in class_record.class_constructors:
         TypeChecker.current_constructor_variable_table = constructor.variable_table
@@ -520,6 +558,7 @@ class TypeChecker:
       TypeChecker.current_constructor_variable_table = None
 
       for method_record in class_record.methods:
+        TypeChecker.current_method = method_record
         TypeChecker.current_method_variable_table = method_record.variable_table
         tc_method = self.resolveMethod(method_record)
         if tc_method == False:

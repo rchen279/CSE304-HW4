@@ -44,7 +44,7 @@ def main():
     print(result)
     # Parsing Successful
     print()
-    print("YES")
+    print("AST Successfully Constructed")
     print()
 
     # do type checking
