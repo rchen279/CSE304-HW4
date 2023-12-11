@@ -1,3 +1,7 @@
+# Ryan Chen 
+# ryachen
+# 113200236
+
 from decaf_ast import *
 class TypeChecker:
   # some helper stuff
@@ -5,6 +9,7 @@ class TypeChecker:
   current_method_variable_table = None
   current_class_name = None
   current_method = None
+  current_class_record = None
   def __init__(self,ast):
     self.ast = ast
     self.type_checking_errors = []
@@ -508,8 +513,12 @@ class TypeChecker:
       expression_record.type = TypeRecord(TypeChecker.current_class_name)
 
     elif isinstance(expression_record,SuperExpression):
-      # expression_record.type = .... 
-      pass
+      if TypeChecker.current_class_record.super_class_name is not None:
+        expression_record.type = TypeRecord(TypeChecker.current_class_record.super_class_name)
+      else:
+        expression_record.type = TypeRecord("error")
+        self.type_checking_errors.append("SUPER EXPRESSION - No super class")
+      print(expression_record.type)
     elif isinstance(expression_record,ClassReferenceExpression):
       # expression_record.type = .... 
       pass
@@ -547,6 +556,7 @@ class TypeChecker:
     is_program_type_correct = True
     for class_record in self.ast.class_records:
       # print("handling class {cr}".format(cr=class_record.class_name))
+      TypeChecker.current_class_record = class_record
       TypeChecker.current_class_name = class_record.class_name
       for constructor in class_record.class_constructors:
         TypeChecker.current_constructor_variable_table = constructor.variable_table
@@ -573,7 +583,7 @@ class TypeChecker:
     if(is_program_type_correct):
       print("Type Correct Program! Yay!")
     else:
-      print("Nope. Something was wrong with types ..")
+      print("Nope. Something was wrong with the types ..")
     print("--------------------------")
     print("The following errors were detected:")
     for err in self.type_checking_errors:
